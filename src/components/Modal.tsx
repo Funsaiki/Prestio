@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -11,33 +11,55 @@ interface ModalProps {
 
 export function Modal({ isOpen, title, onClose, children, footer }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationClass, setAnimationClass] = useState<'in' | 'out'>('in');
+  const closingRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isVisible) {
+      // Ouverture
       setIsVisible(true);
-      setIsClosing(false);
+      setAnimationClass('in');
+      setIsAnimating(true);
+      closingRef.current = false;
+    } else if (!isOpen && isVisible && !closingRef.current) {
+      // Fermeture déclenchée par le parent
+      closingRef.current = true;
+      setAnimationClass('out');
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsVisible(false);
+        setIsAnimating(false);
+        closingRef.current = false;
+      }, 250);
     }
-  }, [isOpen]);
+  }, [isOpen, isVisible]);
 
   const handleClose = () => {
-    setIsClosing(true);
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setAnimationClass('out');
+    setIsAnimating(true);
     setTimeout(() => {
       setIsVisible(false);
-      setIsClosing(false);
+      setIsAnimating(false);
+      closingRef.current = false;
       onClose();
     }, 250);
   };
 
   if (!isVisible) return null;
 
+  const containerClass = animationClass === 'in' ? 'animate-fade-in' : 'animate-fade-out';
+  const modalClass = animationClass === 'in' ? 'animate-scale-in' : 'animate-scale-out';
+
   return createPortal(
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}>
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center ${containerClass}`}>
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
-      <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] flex flex-col ${isClosing ? 'animate-scale-out' : 'animate-scale-in'}`}>
+      <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] flex flex-col ${modalClass}`}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <h3 className="font-elegant text-xl font-semibold text-gray-900 dark:text-white">
             {title}

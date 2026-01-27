@@ -84,11 +84,19 @@ export function ClientList() {
       };
     });
 
+    // Tri par date décroissante (plus récent en premier)
+    const sortByDateDesc = (a: ClientWithPrestation, b: ClientWithPrestation) => {
+      if (!a.lastPrestationDate && !b.lastPrestationDate) return 0;
+      if (!a.lastPrestationDate) return 1;
+      if (!b.lastPrestationDate) return -1;
+      return b.lastPrestationDate.getTime() - a.lastPrestationDate.getTime();
+    };
+
     return {
       filteredClients: filtered,
-      todayClients: clientsWithPrestation.filter(c => c.category === 'today'),
-      futureClients: clientsWithPrestation.filter(c => c.category === 'future'),
-      pastClients: clientsWithPrestation.filter(c => c.category === 'past'),
+      todayClients: clientsWithPrestation.filter(c => c.category === 'today').sort(sortByDateDesc),
+      futureClients: clientsWithPrestation.filter(c => c.category === 'future').sort(sortByDateDesc),
+      pastClients: clientsWithPrestation.filter(c => c.category === 'past').sort(sortByDateDesc),
     };
   }, [clients, prestations, search, isToday, isFuture]);
 
