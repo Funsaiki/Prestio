@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
 import { ClientForm } from '../components/ClientForm';
+import { Modal } from '../components/Modal';
 import type { Client } from '../types';
 
 type ClientWithPrestation = Client & { lastPrestationDate: Date | null };
@@ -11,7 +12,6 @@ export function ClientList() {
   const { clients, loading, addClient } = useClients();
   const { prestations } = usePrestations();
   const [formVisible, setFormVisible] = useState(false);
-  const [formClosing, setFormClosing] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: true,
@@ -24,13 +24,7 @@ export function ClientList() {
   };
 
   const openForm = () => setFormVisible(true);
-  const closeForm = () => {
-    setFormClosing(true);
-    setTimeout(() => {
-      setFormVisible(false);
-      setFormClosing(false);
-    }, 250);
-  };
+  const closeForm = () => setFormVisible(false);
 
   const isToday = (date: Date): boolean => {
     const today = new Date();
@@ -198,15 +192,12 @@ export function ClientList() {
         />
       </div>
 
-      {formVisible && (
-        <div className={`mb-4 p-5 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-y-auto max-h-[60vh] ${formClosing ? 'animate-scale-out' : 'animate-scale-in'}`}>
-          <h2 className="text-lg font-medium mb-4 text-gray-800 dark:text-white">Nouveau client</h2>
-          <ClientForm
-            onSubmit={handleSubmit}
-            onCancel={closeForm}
-          />
-        </div>
-      )}
+      <Modal isOpen={formVisible} title="Nouveau client" onClose={closeForm}>
+        <ClientForm
+          onSubmit={handleSubmit}
+          onCancel={closeForm}
+        />
+      </Modal>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex-1 flex flex-col min-h-0">
         {filteredClients.length === 0 ? (

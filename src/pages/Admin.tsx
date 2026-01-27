@@ -62,7 +62,7 @@ export function Admin() {
         <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">Administration</h1>
         <Link
           to="/"
-          className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200"
+          className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 cursor-pointer"
         >
           Retour aux clients
         </Link>

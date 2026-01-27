@@ -7,6 +7,7 @@ import { usePrestations } from '../hooks/usePrestations';
 import { ClientForm } from '../components/ClientForm';
 import { PrestationForm } from '../components/PrestationForm';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { Modal } from '../components/Modal';
 import { TYPE_POSE_LABELS } from '../types';
 import type { Client, Prestation } from '../types';
 
@@ -14,33 +15,28 @@ export function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { updateClient, deleteClient } = useClients();
-  const { prestations, addPrestation, deletePrestation } = usePrestations(id);
+  const { prestations, addPrestation, updatePrestation, deletePrestation } = usePrestations(id);
 
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [editFormVisible, setEditFormVisible] = useState(false);
-  const [editFormClosing, setEditFormClosing] = useState(false);
   const [prestationFormVisible, setPrestationFormVisible] = useState(false);
-  const [prestationFormClosing, setPrestationFormClosing] = useState(false);
+  const [prestationToEdit, setPrestationToEdit] = useState<Prestation | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [prestationToDelete, setPrestationToDelete] = useState<string | null>(null);
 
   const openEditForm = () => setEditFormVisible(true);
-  const closeEditForm = () => {
-    setEditFormClosing(true);
-    setTimeout(() => {
-      setEditFormVisible(false);
-      setEditFormClosing(false);
-    }, 250);
-  };
+  const closeEditForm = () => setEditFormVisible(false);
 
   const openPrestationForm = () => setPrestationFormVisible(true);
   const closePrestationForm = () => {
-    setPrestationFormClosing(true);
-    setTimeout(() => {
-      setPrestationFormVisible(false);
-      setPrestationFormClosing(false);
-    }, 250);
+    setPrestationFormVisible(false);
+    setPrestationToEdit(null);
+  };
+
+  const openEditPrestation = (prestation: Prestation) => {
+    setPrestationToEdit(prestation);
+    setPrestationFormVisible(true);
   };
 
   useEffect(() => {
@@ -80,9 +76,13 @@ export function ClientDetail() {
     navigate('/');
   };
 
-  const handleAddPrestation = async (data: Omit<Prestation, 'id' | 'clientId'>) => {
+  const handleSubmitPrestation = async (data: Omit<Prestation, 'id' | 'clientId'>) => {
     if (!id) return;
-    await addPrestation({ ...data, clientId: id });
+    if (prestationToEdit) {
+      await updatePrestation(prestationToEdit.id, data);
+    } else {
+      await addPrestation({ ...data, clientId: id });
+    }
     closePrestationForm();
   };
 
@@ -109,7 +109,7 @@ export function ClientDetail() {
     <div className="h-full flex flex-col animate-fade-in">
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 mb-4 group flex-shrink-0"
+        className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 mb-4 group flex-shrink-0 cursor-pointer"
       >
         <svg className="w-5 h-5 mr-1 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -117,18 +117,16 @@ export function ClientDetail() {
         Retour
       </button>
 
+      <Modal isOpen={editFormVisible} title="Modifier le client" onClose={closeEditForm}>
+        <ClientForm
+          initialData={client}
+          onSubmit={handleUpdate}
+          onCancel={closeEditForm}
+        />
+      </Modal>
+
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-4 animate-scale-in flex-shrink-0">
-        {editFormVisible ? (
-          <div className={editFormClosing ? 'animate-scale-out' : 'animate-scale-in'}>
-            <ClientForm
-              initialData={client}
-              onSubmit={handleUpdate}
-              onCancel={closeEditForm}
-            />
-          </div>
-        ) : (
-          <>
-            {/* Header avec nom et actions */}
+        {/* Header avec nom et actions */}
             <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
               <h1 className="font-elegant text-2xl font-semibold text-gray-900 dark:text-white">
                 {client.prenom} {client.nom}
@@ -136,7 +134,7 @@ export function ClientDetail() {
               <div className="flex gap-2">
                 <button
                   onClick={openEditForm}
-                  className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
                   title="Modifier"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +143,7 @@ export function ClientDetail() {
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                   title="Supprimer"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,8 +193,6 @@ export function ClientDetail() {
                 </div>
               </div>
             )}
-          </>
-        )}
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex-1 flex flex-col min-h-0">
@@ -211,14 +207,13 @@ export function ClientDetail() {
           </button>
         </div>
 
-        {prestationFormVisible && (
-          <div className={`mb-4 p-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-y-auto max-h-[60vh] ${prestationFormClosing ? 'animate-scale-out' : 'animate-scale-in'}`}>
-            <PrestationForm
-              onSubmit={handleAddPrestation}
-              onCancel={closePrestationForm}
-            />
-          </div>
-        )}
+        <Modal isOpen={prestationFormVisible} title={prestationToEdit ? "Modifier la prestation" : "Nouvelle prestation"} onClose={closePrestationForm}>
+          <PrestationForm
+            initialData={prestationToEdit || undefined}
+            onSubmit={handleSubmitPrestation}
+            onCancel={closePrestationForm}
+          />
+        </Modal>
 
         {prestations.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune prestation enregistrée</p>
@@ -235,7 +230,7 @@ export function ClientDetail() {
                     {/* Header: Type + Date */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className="font-medium text-gray-900 dark:text-white text-lg">
-                        {TYPE_POSE_LABELS[prestation.typePose]}
+                        {prestation.typePose && TYPE_POSE_LABELS[prestation.typePose] ? TYPE_POSE_LABELS[prestation.typePose] : 'Prestation'}
                       </span>
                       <span className="px-2.5 py-1 bg-gold/10 text-gold text-sm rounded-full font-medium">
                         {prestation.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -248,18 +243,18 @@ export function ClientDetail() {
                     {(prestation.courbe || prestation.longueur || prestation.mapping) && (
                       <div className="flex flex-wrap gap-2 mb-3">
                         {prestation.courbe && (
-                          <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
+                          <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm rounded-lg font-medium">
                             Courbure {prestation.courbe}
                           </span>
                         )}
                         {prestation.longueur && (
-                          <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
-                            {prestation.longueur}
+                          <span className="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-sm rounded-lg font-medium">
+                            {prestation.longueur} mm
                           </span>
                         )}
                         {prestation.mapping && (
-                          <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
-                            Mapping: {prestation.mapping}
+                          <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm rounded-lg font-medium">
+                            {prestation.mapping}
                           </span>
                         )}
                       </div>
@@ -278,15 +273,26 @@ export function ClientDetail() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setPrestationToDelete(prestation.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
-                    title="Supprimer"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => openEditPrestation(prestation)}
+                      className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
+                      title="Modifier"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setPrestationToDelete(prestation.id)}
+                      className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                      title="Supprimer"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

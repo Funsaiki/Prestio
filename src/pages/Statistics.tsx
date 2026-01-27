@@ -76,6 +76,7 @@ export function Statistics() {
     const totalRevenue = filteredPrestations.reduce((sum, p) => sum + p.prix, 0);
 
     // Répartition par type de pose
+    const knownTypes = Object.keys(TYPE_POSE_LABELS);
     const typeDistribution = Object.keys(TYPE_POSE_LABELS).map(type => {
       const count = filteredPrestations.filter(p => p.typePose === type).length;
       return {
@@ -84,6 +85,16 @@ export function Statistics() {
         percentage: filteredPrestations.length > 0 ? Math.round((count / filteredPrestations.length) * 100) : 0,
       };
     }).filter(t => t.value > 0);
+
+    // Ajouter catégorie "Autre" pour les prestations sans type ou type inconnu
+    const otherCount = filteredPrestations.filter(p => !p.typePose || !knownTypes.includes(p.typePose)).length;
+    if (otherCount > 0) {
+      typeDistribution.push({
+        name: 'Autre',
+        value: otherCount,
+        percentage: filteredPrestations.length > 0 ? Math.round((otherCount / filteredPrestations.length) * 100) : 0,
+      });
+    }
 
     // Répartition modes de paiement
     const paymentMethods: Record<string, number> = {};
@@ -181,7 +192,7 @@ export function Statistics() {
         <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">Statistiques</h1>
         <Link
           to="/"
-          className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200"
+          className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 cursor-pointer"
         >
           Retour aux clients
         </Link>
