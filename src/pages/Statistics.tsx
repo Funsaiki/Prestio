@@ -266,7 +266,7 @@ export function Statistics() {
                 <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  formatter={(value: number) => formatCurrency(value)}
+                  formatter={(value) => formatCurrency(Number(value))}
                   contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
                   labelStyle={{ color: '#f3f4f6' }}
                 />
