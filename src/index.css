@@ -95,6 +95,18 @@ html.dark .bg-cream,
   color: var(--color-cream);
 }
 
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -112,6 +124,7 @@ html.dark .bg-cream,
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold-light);
 }
+
 
 /* React DatePicker custom styles */
 .react-datepicker {

@@ -24,6 +24,8 @@ export function ClientDetail() {
   const [prestationToEdit, setPrestationToEdit] = useState<Prestation | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [prestationToDelete, setPrestationToDelete] = useState<string | null>(null);
+  const [clientFormSubmitting, setClientFormSubmitting] = useState(false);
+  const [prestationFormSubmitting, setPrestationFormSubmitting] = useState(false);
 
   const openEditForm = () => setEditFormVisible(true);
   const closeEditForm = () => setEditFormVisible(false);
@@ -117,11 +119,37 @@ export function ClientDetail() {
         Retour
       </button>
 
-      <Modal isOpen={editFormVisible} title="Modifier le client" onClose={closeEditForm}>
+      <Modal
+        isOpen={editFormVisible}
+        title="Modifier le client"
+        onClose={closeEditForm}
+        footer={
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={closeEditForm}
+              className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              form="client-edit-form"
+              disabled={clientFormSubmitting}
+              className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+              style={{ backgroundColor: 'var(--color-gold)' }}
+            >
+              {clientFormSubmitting ? 'Enregistrement...' : 'Modifier'}
+            </button>
+          </div>
+        }
+      >
         <ClientForm
+          formId="client-edit-form"
           initialData={client}
           onSubmit={handleUpdate}
           onCancel={closeEditForm}
+          onSubmittingChange={setClientFormSubmitting}
         />
       </Modal>
 
@@ -207,11 +235,37 @@ export function ClientDetail() {
           </button>
         </div>
 
-        <Modal isOpen={prestationFormVisible} title={prestationToEdit ? "Modifier la prestation" : "Nouvelle prestation"} onClose={closePrestationForm}>
+        <Modal
+          isOpen={prestationFormVisible}
+          title={prestationToEdit ? "Modifier la prestation" : "Nouvelle prestation"}
+          onClose={closePrestationForm}
+          footer={
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={closePrestationForm}
+                className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                form="prestation-form"
+                disabled={prestationFormSubmitting}
+                className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+                style={{ backgroundColor: 'var(--color-gold)' }}
+              >
+                {prestationFormSubmitting ? 'Enregistrement...' : prestationToEdit ? 'Modifier' : 'Ajouter'}
+              </button>
+            </div>
+          }
+        >
           <PrestationForm
+            formId="prestation-form"
             initialData={prestationToEdit || undefined}
             onSubmit={handleSubmitPrestation}
             onCancel={closePrestationForm}
+            onSubmittingChange={setPrestationFormSubmitting}
           />
         </Modal>
 

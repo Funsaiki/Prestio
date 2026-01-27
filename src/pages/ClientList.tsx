@@ -13,6 +13,7 @@ export function ClientList() {
   const { prestations } = usePrestations();
   const [formVisible, setFormVisible] = useState(false);
   const [search, setSearch] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: true,
     future: true,
@@ -192,10 +193,36 @@ export function ClientList() {
         />
       </div>
 
-      <Modal isOpen={formVisible} title="Nouveau client" onClose={closeForm}>
+      <Modal
+        isOpen={formVisible}
+        title="Nouveau client"
+        onClose={closeForm}
+        footer={
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={closeForm}
+              className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              form="client-form"
+              disabled={submitting}
+              className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+              style={{ backgroundColor: 'var(--color-gold)' }}
+            >
+              {submitting ? 'Enregistrement...' : 'Ajouter'}
+            </button>
+          </div>
+        }
+      >
         <ClientForm
+          formId="client-form"
           onSubmit={handleSubmit}
           onCancel={closeForm}
+          onSubmittingChange={setSubmitting}
         />
       </Modal>
 

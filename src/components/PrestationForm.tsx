@@ -2,6 +2,8 @@ import { useState } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Select } from './Select';
+import { NumberInput } from './NumberInput';
 import { TYPE_POSE_LABELS, COURBE_OPTIONS } from '../types';
 import type { Prestation, TypePose, Courbe } from '../types';
 
@@ -11,6 +13,8 @@ interface PrestationFormProps {
   initialData?: Prestation;
   onSubmit: (data: Omit<Prestation, 'id' | 'clientId'>) => Promise<void>;
   onCancel: () => void;
+  formId?: string;
+  onSubmittingChange?: (submitting: boolean) => void;
 }
 
 const inputClass = "w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200";
@@ -27,17 +31,22 @@ const MODES_PAIEMENT = [
   { value: 'Autre', label: 'Autre' },
 ];
 
-export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFormProps) {
+export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubmittingChange }: PrestationFormProps) {
   const [formData, setFormData] = useState({
     typePose: initialData?.typePose || ('cil_a_cil' as TypePose),
     date: initialData?.date || new Date(),
     courbe: (initialData?.courbe || '') as Courbe | '',
-    longueur: initialData?.longueur || '',
+    longueur: initialData?.longueur || '0',
     mapping: initialData?.mapping || '',
     modePaiement: initialData?.modePaiement || '',
     prix: initialData?.prix || 0,
   });
   const [submitting, setSubmitting] = useState(false);
+
+  const setSubmittingState = (value: boolean) => {
+    setSubmitting(value);
+    onSubmittingChange?.(value);
+  };
   const [mapGuideVisible, setMapGuideVisible] = useState(false);
   const [mapGuideClosing, setMapGuideClosing] = useState(false);
   const [datePickerClosing, setDatePickerClosing] = useState(false);
@@ -61,7 +70,7 @@ export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingState(true);
     try {
       await onSubmit({
         typePose: formData.typePose,
@@ -73,12 +82,12 @@ export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFo
         prix: formData.prix,
       });
     } finally {
-      setSubmitting(false);
+      setSubmittingState(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Date et heure *</label>
@@ -100,49 +109,32 @@ export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFo
         </div>
         <div>
           <label className={labelClass}>Type de pose *</label>
-          <select
-            required
+          <Select
+            options={Object.entries(TYPE_POSE_LABELS).map(([value, label]) => ({ value, label }))}
             value={formData.typePose}
-            onChange={(e) =>
-              setFormData({ ...formData, typePose: e.target.value as TypePose })
-            }
-            className={inputClass}
-          >
-            {Object.entries(TYPE_POSE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFormData({ ...formData, typePose: value as TypePose })}
+            placeholder="Sélectionner..."
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Courbure</label>
-          <select
+          <Select
+            options={[{ value: '', label: '-' }, ...COURBE_OPTIONS.map((courbe) => ({ value: courbe, label: courbe }))]}
             value={formData.courbe}
-            onChange={(e) =>
-              setFormData({ ...formData, courbe: e.target.value as Courbe | '' })
-            }
-            className={inputClass}
-          >
-            <option value="">-</option>
-            {COURBE_OPTIONS.map((courbe) => (
-              <option key={courbe} value={courbe}>
-                {courbe}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFormData({ ...formData, courbe: value as Courbe | '' })}
+            placeholder="-"
+          />
         </div>
         <div>
-          <label className={labelClass}>Longueur</label>
-          <input
-            type="text"
+          <label className={labelClass}>Longueur (mm)</label>
+          <NumberInput
             value={formData.longueur}
-            onChange={(e) => setFormData({ ...formData, longueur: e.target.value })}
-            className={inputClass}
-            placeholder="ex: 10-12mm"
+            onChange={(value) => setFormData({ ...formData, longueur: value })}
+            min={0}
+            max={25}
           />
         </div>
       </div>
@@ -191,17 +183,12 @@ export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFo
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Mode de paiement</label>
-          <select
+          <Select
+            options={MODES_PAIEMENT}
             value={formData.modePaiement}
-            onChange={(e) => setFormData({ ...formData, modePaiement: e.target.value })}
-            className={inputClass}
-          >
-            {MODES_PAIEMENT.map((mode) => (
-              <option key={mode.value} value={mode.value}>
-                {mode.label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFormData({ ...formData, modePaiement: value })}
+            placeholder="-"
+          />
         </div>
         <div>
           <label className={labelClass}>Prix (€) *</label>
@@ -217,23 +204,25 @@ export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFo
         </div>
       </div>
 
-      <div className="flex gap-3 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-        >
-          Annuler
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg"
-          style={{ backgroundColor: 'var(--color-gold)' }}
-        >
-          {submitting ? 'Enregistrement...' : initialData ? 'Modifier' : 'Ajouter'}
-        </button>
-      </div>
+      {!formId && (
+        <div className="flex gap-3 justify-end pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+            style={{ backgroundColor: 'var(--color-gold)' }}
+          >
+            {submitting ? 'Enregistrement...' : initialData ? 'Modifier' : 'Ajouter'}
+          </button>
+        </div>
+      )}
     </form>
   );
 }

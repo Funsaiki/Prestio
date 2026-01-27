@@ -5,6 +5,8 @@ interface ClientFormProps {
   initialData?: Client;
   onSubmit: (data: Omit<Client, 'id' | 'dateCreation'>) => Promise<void>;
   onCancel: () => void;
+  formId?: string;
+  onSubmittingChange?: (submitting: boolean) => void;
 }
 
 const inputClass = "w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200";
@@ -31,7 +33,7 @@ const isValidEmail = (email: string): boolean => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps) {
+export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmittingChange }: ClientFormProps) {
   const [formData, setFormData] = useState({
     nom: initialData?.nom || '',
     prenom: initialData?.prenom || '',
@@ -42,6 +44,11 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ telephone?: string; email?: string }>({});
+
+  const setSubmittingState = (value: boolean) => {
+    setSubmitting(value);
+    onSubmittingChange?.(value);
+  };
 
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhoneNumber(value);
@@ -75,16 +82,16 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
       return;
     }
 
-    setSubmitting(true);
+    setSubmittingState(true);
     try {
       await onSubmit(formData);
     } finally {
-      setSubmitting(false);
+      setSubmittingState(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Prénom *</label>
@@ -160,23 +167,25 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
         />
       </div>
 
-      <div className="flex gap-3 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-        >
-          Annuler
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg"
-          style={{ backgroundColor: 'var(--color-gold)' }}
-        >
-          {submitting ? 'Enregistrement...' : initialData ? 'Modifier' : 'Ajouter'}
-        </button>
-      </div>
+      {!formId && (
+        <div className="flex gap-3 justify-end pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+            style={{ backgroundColor: 'var(--color-gold)' }}
+          >
+            {submitting ? 'Enregistrement...' : initialData ? 'Modifier' : 'Ajouter'}
+          </button>
+        </div>
+      )}
     </form>
   );
 }
