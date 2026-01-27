@@ -13,6 +13,15 @@ export function ClientList() {
   const [formVisible, setFormVisible] = useState(false);
   const [formClosing, setFormClosing] = useState(false);
   const [search, setSearch] = useState('');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    today: true,
+    future: true,
+    past: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const openForm = () => setFormVisible(true);
   const closeForm = () => {
@@ -124,16 +133,36 @@ export function ClientList() {
     </li>
   );
 
-  const renderSection = (title: string, clients: ClientWithPrestation[], bgColor: string) => {
+  const renderSection = (title: string, sectionKey: string, clients: ClientWithPrestation[], bgColor: string) => {
     if (clients.length === 0) return null;
+    const isExpanded = expandedSections[sectionKey];
+
     return (
       <div className="animate-fade-in">
-        <div className={`${bgColor} px-4 py-2.5 font-medium text-sm uppercase tracking-wider`}>
-          {title} ({clients.length})
+        <button
+          type="button"
+          onClick={() => toggleSection(sectionKey)}
+          className={`${bgColor} px-4 py-2.5 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200`}
+        >
+          <span>{title} ({clients.length})</span>
+          <svg
+            className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+            {clients.map((client, index) => renderClientItem(client, index))}
+          </ul>
         </div>
-        <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-          {clients.map((client, index) => renderClientItem(client, index))}
-        </ul>
       </div>
     );
   };
@@ -186,9 +215,9 @@ export function ClientList() {
           </div>
         ) : (
           <div className="overflow-y-auto flex-1">
-            {renderSection('Aujourd\'hui', todayClients, 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300')}
-            {renderSection('À venir', futureClients, 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300')}
-            {renderSection('Passé', pastClients, 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400')}
+            {renderSection('Aujourd\'hui', 'today', todayClients, 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300')}
+            {renderSection('À venir', 'future', futureClients, 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300')}
+            {renderSection('Passé', 'past', pastClients, 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400')}
           </div>
         )}
       </div>
