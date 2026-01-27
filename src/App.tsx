@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ClientList } from './pages/ClientList';
 import { ClientDetail } from './pages/ClientDetail';
+import { Statistics } from './pages/Statistics';
+import { Admin } from './pages/Admin';
 import { Login } from './pages/Login';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -41,6 +43,16 @@ function AppContent() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
+            <Link
+              to="/statistiques"
+              className="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
+              aria-label="Statistiques"
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </Link>
+            <ThemeToggle />
             <button
               onClick={logout}
               className="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
@@ -50,13 +62,14 @@ function AppContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
-            <ThemeToggle />
           </div>
         </header>
         <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 animate-fade-in overflow-hidden">
           <Routes>
             <Route path="/" element={<ClientList />} />
             <Route path="/clients/:id" element={<ClientDetail />} />
+            <Route path="/statistiques" element={<Statistics />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>
       </div>

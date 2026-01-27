@@ -16,6 +16,17 @@ interface PrestationFormProps {
 const inputClass = "w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200";
 const labelClass = "block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5";
 
+const MODES_PAIEMENT = [
+  { value: '', label: '-' },
+  { value: 'Carte bancaire', label: 'Carte bancaire' },
+  { value: 'Espèces', label: 'Espèces' },
+  { value: 'Chèque', label: 'Chèque' },
+  { value: 'Virement', label: 'Virement bancaire' },
+  { value: 'PayPal', label: 'PayPal' },
+  { value: 'Chèque cadeau', label: 'Chèque cadeau' },
+  { value: 'Autre', label: 'Autre' },
+];
+
 export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFormProps) {
   const [formData, setFormData] = useState({
     typePose: initialData?.typePose || ('cil_a_cil' as TypePose),
@@ -180,13 +191,17 @@ export function PrestationForm({ initialData, onSubmit, onCancel }: PrestationFo
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Mode de paiement</label>
-          <input
-            type="text"
+          <select
             value={formData.modePaiement}
             onChange={(e) => setFormData({ ...formData, modePaiement: e.target.value })}
             className={inputClass}
-            placeholder="Carte, espèces, etc."
-          />
+          >
+            {MODES_PAIEMENT.map((mode) => (
+              <option key={mode.value} value={mode.value}>
+                {mode.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className={labelClass}>Prix (€) *</label>
