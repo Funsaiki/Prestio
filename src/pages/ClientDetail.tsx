@@ -1,0 +1,323 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useClients } from '../hooks/useClients';
+import { usePrestations } from '../hooks/usePrestations';
+import { ClientForm } from '../components/ClientForm';
+import { PrestationForm } from '../components/PrestationForm';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { TYPE_POSE_LABELS } from '../types';
+import type { Client, Prestation } from '../types';
+
+export function ClientDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { updateClient, deleteClient } = useClients();
+  const { prestations, addPrestation, deletePrestation } = usePrestations(id);
+
+  const [client, setClient] = useState<Client | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editFormVisible, setEditFormVisible] = useState(false);
+  const [editFormClosing, setEditFormClosing] = useState(false);
+  const [prestationFormVisible, setPrestationFormVisible] = useState(false);
+  const [prestationFormClosing, setPrestationFormClosing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [prestationToDelete, setPrestationToDelete] = useState<string | null>(null);
+
+  const openEditForm = () => setEditFormVisible(true);
+  const closeEditForm = () => {
+    setEditFormClosing(true);
+    setTimeout(() => {
+      setEditFormVisible(false);
+      setEditFormClosing(false);
+    }, 250);
+  };
+
+  const openPrestationForm = () => setPrestationFormVisible(true);
+  const closePrestationForm = () => {
+    setPrestationFormClosing(true);
+    setTimeout(() => {
+      setPrestationFormVisible(false);
+      setPrestationFormClosing(false);
+    }, 250);
+  };
+
+  useEffect(() => {
+    if (!id) return;
+
+    const unsubscribe = onSnapshot(doc(db, 'clients', id), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setClient({
+          id: docSnap.id,
+          nom: data.last_name || '',
+          prenom: data.first_name || '',
+          telephone: data.phone || '',
+          email: data.mail || '',
+          lunettes: data.glasses || false,
+          notes: data.notes || '',
+          dateCreation: data.created_at?.toDate() || new Date(),
+        });
+      } else {
+        setClient(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [id]);
+
+  const handleUpdate = async (data: Omit<Client, 'id' | 'dateCreation'>) => {
+    if (!id) return;
+    await updateClient(id, data);
+    closeEditForm();
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    await deleteClient(id);
+    navigate('/');
+  };
+
+  const handleAddPrestation = async (data: Omit<Prestation, 'id' | 'clientId'>) => {
+    if (!id) return;
+    await addPrestation({ ...data, clientId: id });
+    closePrestationForm();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
+      </div>
+    );
+  }
+
+  if (!client) {
+    return (
+      <div className="text-center py-12 animate-fade-in">
+        <p className="text-gray-500 dark:text-gray-400 mb-4">Client non trouvé</p>
+        <Link to="/" className="text-gold hover:text-gold-light transition-colors duration-200">
+          Retour à la liste
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex flex-col animate-fade-in">
+      <Link
+        to="/"
+        className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 mb-4 group flex-shrink-0"
+      >
+        <svg className="w-5 h-5 mr-1 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour
+      </Link>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-4 animate-scale-in flex-shrink-0">
+        {editFormVisible ? (
+          <div className={editFormClosing ? 'animate-scale-out' : 'animate-scale-in'}>
+            <ClientForm
+              initialData={client}
+              onSubmit={handleUpdate}
+              onCancel={closeEditForm}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Header avec nom et actions */}
+            <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
+              <h1 className="font-elegant text-2xl font-semibold text-gray-900 dark:text-white">
+                {client.prenom} {client.nom}
+              </h1>
+              <div className="flex gap-2">
+                <button
+                  onClick={openEditForm}
+                  className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
+                  title="Modifier"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                  title="Supprimer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Informations de contact */}
+            <div className="py-4 space-y-3">
+              {client.telephone && (
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span>{client.telephone}</span>
+                </div>
+              )}
+              {client.email && (
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>{client.email}</span>
+                </div>
+              )}
+              {client.lunettes && (
+                <div className="flex items-center gap-3 text-gold">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span className="text-sm font-medium">Porte des lunettes</span>
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            {client.notes && (
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{client.notes}</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex-1 flex flex-col min-h-0">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
+          <h2 className="font-elegant text-xl font-medium text-gray-900 dark:text-white">Prestations</h2>
+          <button
+            onClick={openPrestationForm}
+            className="text-white px-4 py-2 text-sm rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            style={{ backgroundColor: 'var(--color-gold)' }}
+          >
+            + Ajouter
+          </button>
+        </div>
+
+        {prestationFormVisible && (
+          <div className={`mb-4 p-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-y-auto max-h-[60vh] ${prestationFormClosing ? 'animate-scale-out' : 'animate-scale-in'}`}>
+            <PrestationForm
+              onSubmit={handleAddPrestation}
+              onCancel={closePrestationForm}
+            />
+          </div>
+        )}
+
+        {prestations.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune prestation enregistrée</p>
+        ) : (
+          <div className="overflow-y-auto flex-1 space-y-3 pr-2">
+            {prestations.map((prestation, index) => (
+              <div
+                key={prestation.id}
+                className="bg-gray-50 dark:bg-gray-700/40 rounded-xl p-4 hover:shadow-md transition-all duration-200 animate-slide-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    {/* Header: Type + Date */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className="font-medium text-gray-900 dark:text-white text-lg">
+                        {TYPE_POSE_LABELS[prestation.typePose]}
+                      </span>
+                      <span className="px-2.5 py-1 bg-gold/10 text-gold text-sm rounded-full font-medium">
+                        {prestation.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        {' '}&bull;{' '}
+                        {prestation.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    {/* Details: Courbe, Longueur, Mapping */}
+                    {(prestation.courbe || prestation.longueur || prestation.mapping) && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {prestation.courbe && (
+                          <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
+                            Courbure {prestation.courbe}
+                          </span>
+                        )}
+                        {prestation.longueur && (
+                          <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
+                            {prestation.longueur}
+                          </span>
+                        )}
+                        {prestation.mapping && (
+                          <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
+                            Mapping: {prestation.mapping}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Footer: Prix + Mode de paiement */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {prestation.prix.toFixed(2)} €
+                      </span>
+                      {prestation.modePaiement && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {prestation.modePaiement}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setPrestationToDelete(prestation.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                    title="Supprimer"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Supprimer le client"
+        message={`Êtes-vous sûr de vouloir supprimer ${client.prenom} ${client.nom} et toutes ses prestations ?`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={prestationToDelete !== null}
+        title="Supprimer la prestation"
+        message="Êtes-vous sûr de vouloir supprimer cette prestation ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={() => {
+          if (prestationToDelete) {
+            deletePrestation(prestationToDelete);
+            setPrestationToDelete(null);
+          }
+        }}
+        onCancel={() => setPrestationToDelete(null)}
+      />
+    </div>
+  );
+}
