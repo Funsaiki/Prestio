@@ -65,8 +65,10 @@ const PAYMENT_NORMALIZATION: Record<string, string> = {
   'BON CADEAU': 'Chèque cadeau',
 };
 
-function normalizePayment(payment: string): string {
-  if (!payment) return '';
+function normalizePayment(payment: string, convertEmptyToAutre: boolean = false): string {
+  if (!payment || payment.trim() === '') {
+    return convertEmptyToAutre ? 'Autre' : '';
+  }
 
   const trimmed = payment.trim();
 
@@ -107,12 +109,12 @@ export async function migratePayments(): Promise<{
   for (const docSnapshot of snapshot.docs) {
     const data = docSnapshot.data();
     const currentPayment = data.payment || '';
-    const normalizedPayment = normalizePayment(currentPayment);
+    const normalizedPayment = normalizePayment(currentPayment, true);
 
-    if (currentPayment !== normalizedPayment && currentPayment !== '') {
+    if (currentPayment !== normalizedPayment) {
       changes.push({
         id: docSnapshot.id,
-        before: currentPayment,
+        before: currentPayment || '(vide)',
         after: normalizedPayment,
       });
 
@@ -145,12 +147,12 @@ export async function previewPaymentMigration(): Promise<{
   for (const docSnapshot of snapshot.docs) {
     const data = docSnapshot.data();
     const currentPayment = data.payment || '';
-    const normalizedPayment = normalizePayment(currentPayment);
+    const normalizedPayment = normalizePayment(currentPayment, true);
 
-    if (currentPayment !== normalizedPayment && currentPayment !== '') {
+    if (currentPayment !== normalizedPayment) {
       changes.push({
         id: docSnapshot.id,
-        before: currentPayment,
+        before: currentPayment || '(vide)',
         after: normalizedPayment,
       });
     }

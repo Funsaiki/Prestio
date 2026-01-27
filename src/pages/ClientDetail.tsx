@@ -26,6 +26,114 @@ export function ClientDetail() {
   const [prestationToDelete, setPrestationToDelete] = useState<string | null>(null);
   const [clientFormSubmitting, setClientFormSubmitting] = useState(false);
   const [prestationFormSubmitting, setPrestationFormSubmitting] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    today: true,
+    future: true,
+    past: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isFuture = (date: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate > today;
+  };
+
+  const todayPrestations = prestations.filter(p => isToday(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime());
+  const futurePrestations = prestations.filter(p => isFuture(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime());
+  const pastPrestations = prestations.filter(p => !isToday(p.date) && !isFuture(p.date)).sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const renderPrestationCard = (prestation: Prestation, index: number) => (
+    <div
+      key={prestation.id}
+      className="bg-white dark:bg-gray-800 rounded-xl p-4 hover:shadow-md transition-all duration-200 animate-slide-in"
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          {/* Header: Type + Date */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="font-medium text-gray-900 dark:text-white text-lg">
+              {prestation.typePose && TYPE_POSE_LABELS[prestation.typePose] ? TYPE_POSE_LABELS[prestation.typePose] : 'Prestation'}
+            </span>
+            <span className="px-2.5 py-1 bg-gold/10 text-gold text-sm rounded-full font-medium">
+              {prestation.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+              {' '}&bull;{' '}
+              {prestation.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+
+          {/* Details: Courbe, Longueur, Mapping */}
+          {(prestation.courbe || prestation.longueur || prestation.mapping) && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {prestation.courbe && (
+                <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm rounded-lg font-medium">
+                  Courbure {prestation.courbe}
+                </span>
+              )}
+              {prestation.longueur && (
+                <span className="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-sm rounded-lg font-medium">
+                  {prestation.longueur} mm
+                </span>
+              )}
+              {prestation.mapping && (
+                <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm rounded-lg font-medium">
+                  {prestation.mapping}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Footer: Prix + Mode de paiement */}
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-gray-900 dark:text-white">
+              {prestation.prix.toFixed(2)} €
+            </span>
+            {prestation.modePaiement && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {prestation.modePaiement}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <button
+            onClick={() => openEditPrestation(prestation)}
+            className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
+            title="Modifier"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setPrestationToDelete(prestation.id)}
+            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+            title="Supprimer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const openEditForm = () => setEditFormVisible(true);
   const closeEditForm = () => setEditFormVisible(false);
@@ -272,84 +380,84 @@ export function ClientDetail() {
         {prestations.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune prestation enregistrée</p>
         ) : (
-          <div className="overflow-y-auto flex-1 space-y-3 pr-2">
-            {prestations.map((prestation, index) => (
-              <div
-                key={prestation.id}
-                className="bg-gray-50 dark:bg-gray-700/40 rounded-xl p-4 hover:shadow-md transition-all duration-200 animate-slide-in"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    {/* Header: Type + Date */}
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <span className="font-medium text-gray-900 dark:text-white text-lg">
-                        {prestation.typePose && TYPE_POSE_LABELS[prestation.typePose] ? TYPE_POSE_LABELS[prestation.typePose] : 'Prestation'}
-                      </span>
-                      <span className="px-2.5 py-1 bg-gold/10 text-gold text-sm rounded-full font-medium">
-                        {prestation.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
-                        {' '}&bull;{' '}
-                        {prestation.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-
-                    {/* Details: Courbe, Longueur, Mapping */}
-                    {(prestation.courbe || prestation.longueur || prestation.mapping) && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {prestation.courbe && (
-                          <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm rounded-lg font-medium">
-                            Courbure {prestation.courbe}
-                          </span>
-                        )}
-                        {prestation.longueur && (
-                          <span className="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-sm rounded-lg font-medium">
-                            {prestation.longueur} mm
-                          </span>
-                        )}
-                        {prestation.mapping && (
-                          <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm rounded-lg font-medium">
-                            {prestation.mapping}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Footer: Prix + Mode de paiement */}
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {prestation.prix.toFixed(2)} €
-                      </span>
-                      {prestation.modePaiement && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {prestation.modePaiement}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <button
-                      onClick={() => openEditPrestation(prestation)}
-                      className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
-                      title="Modifier"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => setPrestationToDelete(prestation.id)}
-                      className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
-                      title="Supprimer"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+          <div className="overflow-y-auto flex-1">
+            {/* Aujourd'hui */}
+            {todayPrestations.length > 0 && (
+              <div className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('today')}
+                  className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-4 py-2 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200 rounded-t-lg"
+                >
+                  <span>Aujourd'hui ({todayPrestations.length})</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-300 ${expandedSections.today ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedSections.today ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="space-y-3 p-3 bg-gray-50/50 dark:bg-gray-700/20 rounded-b-lg">
+                    {todayPrestations.map((prestation, index) => renderPrestationCard(prestation, index))}
                   </div>
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* À venir */}
+            {futurePrestations.length > 0 && (
+              <div className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('future')}
+                  className="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-4 py-2 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200 rounded-t-lg"
+                >
+                  <span>À venir ({futurePrestations.length})</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-300 ${expandedSections.future ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedSections.future ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="space-y-3 p-3 bg-gray-50/50 dark:bg-gray-700/20 rounded-b-lg">
+                    {futurePrestations.map((prestation, index) => renderPrestationCard(prestation, index))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Passé */}
+            {pastPrestations.length > 0 && (
+              <div className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('past')}
+                  className="bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 px-4 py-2 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200 rounded-t-lg"
+                >
+                  <span>Passé ({pastPrestations.length})</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-300 ${expandedSections.past ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedSections.past ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="space-y-3 p-3 bg-gray-50/50 dark:bg-gray-700/20 rounded-b-lg">
+                    {pastPrestations.map((prestation, index) => renderPrestationCard(prestation, index))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
