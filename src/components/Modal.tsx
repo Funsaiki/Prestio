@@ -11,7 +11,6 @@ interface ModalProps {
 
 export function Modal({ isOpen, title, onClose, children, footer }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [animationClass, setAnimationClass] = useState<'in' | 'out'>('in');
   const closingRef = useRef(false);
 
@@ -20,16 +19,13 @@ export function Modal({ isOpen, title, onClose, children, footer }: ModalProps) 
       // Ouverture
       setIsVisible(true);
       setAnimationClass('in');
-      setIsAnimating(true);
       closingRef.current = false;
     } else if (!isOpen && isVisible && !closingRef.current) {
       // Fermeture déclenchée par le parent
       closingRef.current = true;
       setAnimationClass('out');
-      setIsAnimating(true);
       setTimeout(() => {
         setIsVisible(false);
-        setIsAnimating(false);
         closingRef.current = false;
       }, 250);
     }
@@ -39,10 +35,8 @@ export function Modal({ isOpen, title, onClose, children, footer }: ModalProps) 
     if (closingRef.current) return;
     closingRef.current = true;
     setAnimationClass('out');
-    setIsAnimating(true);
     setTimeout(() => {
       setIsVisible(false);
-      setIsAnimating(false);
       closingRef.current = false;
       onClose();
     }, 250);
