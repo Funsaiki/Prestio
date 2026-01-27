@@ -1,11 +1,23 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { ClientList } from './pages/ClientList';
-import { ClientDetail } from './pages/ClientDetail';
-import { Statistics } from './pages/Statistics';
-import { Admin } from './pages/Admin';
-import { Login } from './pages/Login';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+// Lazy loading des pages
+const ClientList = lazy(() => import('./pages/ClientList').then(m => ({ default: m.ClientList })));
+const ClientDetail = lazy(() => import('./pages/ClientDetail').then(m => ({ default: m.ClientDetail })));
+const Statistics = lazy(() => import('./pages/Statistics').then(m => ({ default: m.Statistics })));
+const Admin = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
+const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
+
+// Composant de chargement
+function PageLoader() {
+  return (
+    <div className="flex justify-center items-center h-64">
+      <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
+    </div>
+  );
+}
 
 function AppContent() {
   const { user, loading, logout } = useAuth();
@@ -22,7 +34,15 @@ function AppContent() {
   }
 
   if (!user) {
-    return <Login />;
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-cream dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
+        </div>
+      }>
+        <Login />
+      </Suspense>
+    );
   }
 
   return (
@@ -65,12 +85,14 @@ function AppContent() {
           </div>
         </header>
         <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 animate-fade-in overflow-hidden">
-          <Routes>
-            <Route path="/" element={<ClientList />} />
-            <Route path="/clients/:id" element={<ClientDetail />} />
-            <Route path="/statistiques" element={<Statistics />} />
-            <Route path="/admin" element={<Admin />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<ClientList />} />
+              <Route path="/clients/:id" element={<ClientDetail />} />
+              <Route path="/statistiques" element={<Statistics />} />
+              <Route path="/admin" element={<Admin />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </BrowserRouter>

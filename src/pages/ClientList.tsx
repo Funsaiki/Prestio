@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
@@ -20,73 +20,82 @@ export function ClientList() {
     past: true,
   });
 
-  const toggleSection = (section: string) => {
+  const toggleSection = useCallback((section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  }, []);
 
-  const openForm = () => setFormVisible(true);
-  const closeForm = () => setFormVisible(false);
+  const openForm = useCallback(() => setFormVisible(true), []);
+  const closeForm = useCallback(() => setFormVisible(false), []);
 
-  const isToday = (date: Date): boolean => {
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
+  // Memoize les fonctions de date
+  const { isToday, isFuture } = useMemo(() => ({
+    isToday: (date: Date): boolean => {
+      const today = new Date();
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      );
+    },
+    isFuture: (date: Date): boolean => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const compareDate = new Date(date);
+      compareDate.setHours(0, 0, 0, 0);
+      return compareDate > today;
+    }
+  }), []);
+
+  // Memoize les clients catégorisés
+  const { todayClients, futureClients, pastClients, filteredClients } = useMemo(() => {
+    const searchLower = search.toLowerCase();
+    const filtered = clients.filter(
+      (client) =>
+        client.nom.toLowerCase().includes(searchLower) ||
+        client.prenom.toLowerCase().includes(searchLower) ||
+        client.telephone.includes(search)
     );
-  };
 
-  const isFuture = (date: Date): boolean => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
-    return compareDate > today;
-  };
+    const getClientCategory = (clientId: string): { category: 'today' | 'future' | 'past'; date: Date | null } => {
+      const clientPrestations = prestations.filter(p => p.clientId === clientId);
+      if (clientPrestations.length === 0) return { category: 'past', date: null };
 
-  const getClientCategory = (clientId: string): { category: 'today' | 'future' | 'past'; date: Date | null } => {
-    const clientPrestations = prestations.filter(p => p.clientId === clientId);
-    if (clientPrestations.length === 0) return { category: 'past', date: null };
+      const todayPrestation = clientPrestations.find(p => isToday(p.date));
+      if (todayPrestation) {
+        return { category: 'today', date: todayPrestation.date };
+      }
 
-    const todayPrestation = clientPrestations.find(p => isToday(p.date));
-    if (todayPrestation) {
-      return { category: 'today', date: todayPrestation.date };
-    }
+      const futurePrestations = clientPrestations.filter(p => isFuture(p.date));
+      if (futurePrestations.length > 0) {
+        futurePrestations.sort((a, b) => a.date.getTime() - b.date.getTime());
+        return { category: 'future', date: futurePrestations[0].date };
+      }
 
-    const futurePrestations = clientPrestations.filter(p => isFuture(p.date));
-    if (futurePrestations.length > 0) {
-      futurePrestations.sort((a, b) => a.date.getTime() - b.date.getTime());
-      return { category: 'future', date: futurePrestations[0].date };
-    }
-
-    clientPrestations.sort((a, b) => b.date.getTime() - a.date.getTime());
-    return { category: 'past', date: clientPrestations[0].date };
-  };
-
-  const filteredClients = clients.filter(
-    (client) =>
-      client.nom.toLowerCase().includes(search.toLowerCase()) ||
-      client.prenom.toLowerCase().includes(search.toLowerCase()) ||
-      client.telephone.includes(search)
-  );
-
-  const clientsWithPrestation: (ClientWithPrestation & { category: 'today' | 'future' | 'past' })[] = filteredClients.map(client => {
-    const { category, date } = getClientCategory(client.id);
-    return {
-      ...client,
-      lastPrestationDate: date,
-      category,
+      clientPrestations.sort((a, b) => b.date.getTime() - a.date.getTime());
+      return { category: 'past', date: clientPrestations[0].date };
     };
-  });
 
-  const todayClients = clientsWithPrestation.filter(c => c.category === 'today');
-  const futureClients = clientsWithPrestation.filter(c => c.category === 'future');
-  const pastClients = clientsWithPrestation.filter(c => c.category === 'past');
+    const clientsWithPrestation: (ClientWithPrestation & { category: 'today' | 'future' | 'past' })[] = filtered.map(client => {
+      const { category, date } = getClientCategory(client.id);
+      return {
+        ...client,
+        lastPrestationDate: date,
+        category,
+      };
+    });
 
-  const handleSubmit = async (data: Omit<Client, 'id' | 'dateCreation'>) => {
+    return {
+      filteredClients: filtered,
+      todayClients: clientsWithPrestation.filter(c => c.category === 'today'),
+      futureClients: clientsWithPrestation.filter(c => c.category === 'future'),
+      pastClients: clientsWithPrestation.filter(c => c.category === 'past'),
+    };
+  }, [clients, prestations, search, isToday, isFuture]);
+
+  const handleSubmit = useCallback(async (data: Omit<Client, 'id' | 'dateCreation'>) => {
     await addClient(data);
     closeForm();
-  };
+  }, [addClient, closeForm]);
 
   const renderClientItem = (client: ClientWithPrestation, index: number) => (
     <li

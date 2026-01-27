@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   collection,
   addDoc,
@@ -42,7 +42,7 @@ export function useClients() {
     return () => unsubscribe();
   }, []);
 
-  const addClient = async (client: Omit<Client, 'id' | 'dateCreation'>) => {
+  const addClient = useCallback(async (client: Omit<Client, 'id' | 'dateCreation'>) => {
     await addDoc(collection(db, 'clients'), {
       first_name: client.prenom,
       last_name: client.nom,
@@ -52,9 +52,9 @@ export function useClients() {
       notes: client.notes,
       created_at: Timestamp.now(),
     });
-  };
+  }, []);
 
-  const updateClient = async (id: string, client: Partial<Client>) => {
+  const updateClient = useCallback(async (id: string, client: Partial<Client>) => {
     const clientRef = doc(db, 'clients', id);
     const updateData: Record<string, unknown> = {};
     if (client.prenom !== undefined) updateData.first_name = client.prenom;
@@ -64,9 +64,9 @@ export function useClients() {
     if (client.lunettes !== undefined) updateData.glasses = client.lunettes;
     if (client.notes !== undefined) updateData.notes = client.notes;
     await updateDoc(clientRef, updateData);
-  };
+  }, []);
 
-  const deleteClient = async (id: string) => {
+  const deleteClient = useCallback(async (id: string) => {
     // Supprimer toutes les prestations du client
     const prestationsQuery = query(
       collection(db, 'prestations'),
@@ -80,7 +80,7 @@ export function useClients() {
 
     // Supprimer le client
     await deleteDoc(doc(db, 'clients', id));
-  };
+  }, []);
 
   return { clients, loading, addClient, updateClient, deleteClient };
 }

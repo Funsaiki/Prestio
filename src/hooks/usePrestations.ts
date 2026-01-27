@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   collection,
   addDoc,
@@ -52,7 +52,7 @@ export function usePrestations(clientId?: string) {
     return () => unsubscribe();
   }, [clientId]);
 
-  const addPrestation = async (prestation: Omit<Prestation, 'id'>) => {
+  const addPrestation = useCallback(async (prestation: Omit<Prestation, 'id'>) => {
     await addDoc(collection(db, 'prestations'), {
       client_id: prestation.clientId,
       type: prestation.typePose,
@@ -63,9 +63,9 @@ export function usePrestations(clientId?: string) {
       payment: prestation.modePaiement,
       price: prestation.prix,
     });
-  };
+  }, []);
 
-  const updatePrestation = async (id: string, prestation: Partial<Prestation>) => {
+  const updatePrestation = useCallback(async (id: string, prestation: Partial<Prestation>) => {
     const prestationRef = doc(db, 'prestations', id);
     const updateData: Record<string, unknown> = {};
     if (prestation.clientId !== undefined) updateData.client_id = prestation.clientId;
@@ -77,11 +77,11 @@ export function usePrestations(clientId?: string) {
     if (prestation.modePaiement !== undefined) updateData.payment = prestation.modePaiement;
     if (prestation.prix !== undefined) updateData.price = prestation.prix;
     await updateDoc(prestationRef, updateData);
-  };
+  }, []);
 
-  const deletePrestation = async (id: string) => {
+  const deletePrestation = useCallback(async (id: string) => {
     await deleteDoc(doc(db, 'prestations', id));
-  };
+  }, []);
 
   return { prestations, loading, addPrestation, updatePrestation, deletePrestation };
 }
