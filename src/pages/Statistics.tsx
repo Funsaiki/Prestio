@@ -5,7 +5,8 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
-import { TYPE_POSE_LABELS } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
 
 registerLocale('fr', fr);
 
@@ -16,10 +17,30 @@ type FilterPreset = 'thisMonth' | 'last3Months' | 'last6Months' | 'thisYear' | '
 export function Statistics() {
   const { clients, loading: loadingClients } = useClients();
   const { prestations, loading: loadingPrestations } = usePrestations();
+  const { salonConfig } = useAuth();
 
   const [filterPreset, setFilterPreset] = useState<FilterPreset>('all');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+
+  // Champs de prestation configurés
+  const prestationFields = useMemo(() => {
+    return salonConfig?.prestationFields ?? DEFAULT_SALON_CONFIG.prestationFields;
+  }, [salonConfig?.prestationFields]);
+
+  // Trouver le premier champ select (utilisé pour la répartition)
+  const mainSelectField = useMemo(() => {
+    return prestationFields.find(f => f.type === 'select');
+  }, [prestationFields]);
+
+  // Trouver le champ "mode de paiement" s'il existe
+  const paymentField = useMemo(() => {
+    return prestationFields.find(f =>
+      f.name === 'mode_paiement' ||
+      f.name.toLowerCase().includes('paiement') ||
+      f.label.toLowerCase().includes('paiement')
+    );
+  }, [prestationFields]);
 
   const getPresetDates = (preset: FilterPreset): { start: Date | null; end: Date | null } => {
     const now = new Date();
@@ -75,31 +96,49 @@ export function Statistics() {
     // CA sur la période
     const totalRevenue = filteredPrestations.reduce((sum, p) => sum + p.prix, 0);
 
-    // Répartition par type de pose
-    const knownTypes = Object.keys(TYPE_POSE_LABELS);
-    const typeDistribution = Object.keys(TYPE_POSE_LABELS).map(type => {
-      const count = filteredPrestations.filter(p => p.typePose === type).length;
-      return {
-        name: TYPE_POSE_LABELS[type as keyof typeof TYPE_POSE_LABELS],
-        value: count,
-        percentage: filteredPrestations.length > 0 ? Math.round((count / filteredPrestations.length) * 100) : 0,
-      };
-    }).filter(t => t.value > 0);
+    // Répartition par le premier champ select (type de pose ou équivalent)
+    let typeDistribution: { name: string; value: number; percentage: number }[] = [];
 
-    // Ajouter catégorie "Autre" pour les prestations sans type ou type inconnu
-    const otherCount = filteredPrestations.filter(p => !p.typePose || !knownTypes.includes(p.typePose)).length;
-    if (otherCount > 0) {
-      typeDistribution.push({
-        name: 'Autre',
-        value: otherCount,
-        percentage: filteredPrestations.length > 0 ? Math.round((otherCount / filteredPrestations.length) * 100) : 0,
-      });
+    if (mainSelectField && mainSelectField.options) {
+      const knownValues = mainSelectField.options.map(opt => opt.value);
+
+      typeDistribution = mainSelectField.options.map(opt => {
+        const count = filteredPrestations.filter(p => p.values[mainSelectField.name] === opt.value).length;
+        return {
+          name: opt.label,
+          value: count,
+          percentage: filteredPrestations.length > 0 ? Math.round((count / filteredPrestations.length) * 100) : 0,
+        };
+      }).filter(t => t.value > 0);
+
+      // Ajouter catégorie "Autre" pour les prestations sans valeur ou valeur inconnue
+      const otherCount = filteredPrestations.filter(p => {
+        const value = p.values[mainSelectField.name];
+        return !value || !knownValues.includes(value as string);
+      }).length;
+
+      if (otherCount > 0) {
+        typeDistribution.push({
+          name: 'Autre',
+          value: otherCount,
+          percentage: filteredPrestations.length > 0 ? Math.round((otherCount / filteredPrestations.length) * 100) : 0,
+        });
+      }
     }
 
     // Répartition modes de paiement
     const paymentMethods: Record<string, number> = {};
     filteredPrestations.forEach(p => {
-      const method = p.modePaiement || 'Non spécifié';
+      const paymentValue = paymentField ? p.values[paymentField.name] : null;
+      let method = 'Non spécifié';
+
+      if (paymentValue && paymentField?.options) {
+        const option = paymentField.options.find(opt => opt.value === paymentValue);
+        method = option?.label || String(paymentValue);
+      } else if (paymentValue) {
+        method = String(paymentValue);
+      }
+
       paymentMethods[method] = (paymentMethods[method] || 0) + 1;
     });
     const paymentDistribution = Object.entries(paymentMethods)
@@ -171,8 +210,9 @@ export function Statistics() {
       topClients,
       clientsToFollowUp,
       revenueByMonth,
+      mainSelectFieldLabel: mainSelectField?.label || 'Type',
     };
-  }, [clients, prestations, filteredPrestations]);
+  }, [clients, prestations, filteredPrestations, mainSelectField, paymentField]);
 
   if (loadingClients || loadingPrestations) {
     return (
@@ -286,9 +326,9 @@ export function Statistics() {
             </ResponsiveContainer>
           </div>
 
-          {/* Répartition types de pose */}
+          {/* Répartition par le champ principal */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.25s' }}>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-4">Répartition par type de pose</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-4">Répartition par {stats.mainSelectFieldLabel.toLowerCase()}</h3>
             {stats.typeDistribution.length > 0 ? (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="50%" height={150}>

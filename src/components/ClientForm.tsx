@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Client } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { CustomFieldInput } from './CustomFieldInput';
+import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
+
+// Form data excludes fields that are auto-populated (id, dateCreation, salonId, createdBy)
+type ClientFormData = Omit<Client, 'id' | 'dateCreation' | 'salonId' | 'createdBy'>;
 
 interface ClientFormProps {
   initialData?: Client;
-  onSubmit: (data: Omit<Client, 'id' | 'dateCreation'>) => Promise<void>;
+  onSubmit: (data: ClientFormData) => Promise<void>;
   onCancel: () => void;
   formId?: string;
   onSubmittingChange?: (submitting: boolean) => void;
@@ -34,13 +40,21 @@ const isValidEmail = (email: string): boolean => {
 };
 
 export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmittingChange }: ClientFormProps) {
+  const { salonConfig } = useAuth();
+
+  // Champs personnalisés pour les clients
+  const clientFields = useMemo(() => {
+    const fields = salonConfig?.clientFields ?? DEFAULT_SALON_CONFIG.clientFields;
+    return [...fields].sort((a, b) => a.order - b.order);
+  }, [salonConfig?.clientFields]);
+
   const [formData, setFormData] = useState({
     nom: initialData?.nom || '',
     prenom: initialData?.prenom || '',
     telephone: initialData?.telephone || '',
     email: initialData?.email || '',
-    lunettes: initialData?.lunettes || false,
     notes: initialData?.notes || '',
+    values: initialData?.values || {} as Record<string, unknown>,
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ telephone?: string; email?: string }>({});
@@ -53,7 +67,6 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhoneNumber(value);
     setFormData({ ...formData, telephone: formatted });
-    // Effacer l'erreur quand l'utilisateur modifie le champ
     if (errors.telephone) {
       setErrors({ ...errors, telephone: undefined });
     }
@@ -61,10 +74,16 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
 
   const handleEmailChange = (value: string) => {
     setFormData({ ...formData, email: value });
-    // Effacer l'erreur quand l'utilisateur modifie le champ
     if (errors.email) {
       setErrors({ ...errors, email: undefined });
     }
+  };
+
+  const handleFieldChange = (fieldName: string, value: unknown) => {
+    setFormData({
+      ...formData,
+      values: { ...formData.values, [fieldName]: value },
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,6 +111,7 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-4">
+      {/* Champs fixes */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Prénom *</label>
@@ -143,19 +163,6 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
         )}
       </div>
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="lunettes"
-          checked={formData.lunettes}
-          onChange={(e) => setFormData({ ...formData, lunettes: e.target.checked })}
-          className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500 bg-white dark:bg-gray-700"
-        />
-        <label htmlFor="lunettes" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Porte des lunettes
-        </label>
-      </div>
-
       <div>
         <label className={labelClass}>Notes</label>
         <textarea
@@ -163,9 +170,23 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={3}
           className={inputClass}
-          placeholder="Allergies, préférences, etc."
+          placeholder="Informations complémentaires..."
         />
       </div>
+
+      {/* Champs personnalisés */}
+      {clientFields.length > 0 && (
+        <div className="space-y-4 pt-2 border-t border-gray-200 dark:border-gray-700">
+          {clientFields.map(field => (
+            <CustomFieldInput
+              key={field.id}
+              field={field}
+              value={formData.values[field.name]}
+              onChange={(value) => handleFieldChange(field.name, value)}
+            />
+          ))}
+        </div>
+      )}
 
       {!formId && (
         <div className="flex gap-3 justify-end pt-2">

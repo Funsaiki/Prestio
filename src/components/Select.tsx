@@ -38,7 +38,11 @@ export function Select({ options, value, onChange, placeholder = 'Sélectionner.
       border: '1px solid var(--select-border, #e5e7eb)',
       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
       overflow: 'hidden',
-      zIndex: 100,
+      zIndex: 9999,
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999,
     }),
     menuList: (base) => ({
       ...base,
@@ -91,6 +95,8 @@ export function Select({ options, value, onChange, placeholder = 'Sélectionner.
       styles={customStyles}
       isSearchable={false}
       required={required}
+      menuPortalTarget={document.body}
+      menuPosition="fixed"
       classNames={{
         control: () => 'dark:!bg-gray-700 dark:!border-gray-600',
         menu: () => 'dark:!bg-gray-700 dark:!border-gray-600',

@@ -1,0 +1,208 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Vérifie si l'utilisateur est authentifié
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Récupère le profil utilisateur
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Vérifie si l'utilisateur est super admin
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserProfile().role == 'super_admin';
+    }
+
+    // Vérifie si l'utilisateur est propriétaire d'un salon
+    function isOwner() {
+      return isAuthenticated() && getUserProfile().role == 'owner';
+    }
+
+    // Vérifie si l'utilisateur est employé
+    function isEmployee() {
+      return isAuthenticated() && getUserProfile().role == 'employee';
+    }
+
+    // Vérifie si l'utilisateur appartient à un salon spécifique
+    function belongsToSalon(salonId) {
+      return isAuthenticated() && getUserProfile().salonId == salonId;
+    }
+
+    // Vérifie si l'utilisateur peut gérer un salon (owner ou super_admin)
+    function canManageSalon(salonId) {
+      return isSuperAdmin() || (isOwner() && belongsToSalon(salonId));
+    }
+
+    // Vérifie si l'utilisateur peut accéder aux données d'un salon
+    function canAccessSalon(salonId) {
+      return isSuperAdmin() || belongsToSalon(salonId);
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    match /users/{userId} {
+      // Lecture: l'utilisateur peut lire son propre profil, super_admin peut tout lire
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin());
+
+      // Création: uniquement pour l'utilisateur lui-même (lors de l'inscription)
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+
+      // Mise à jour: l'utilisateur peut modifier son profil,
+      // super_admin peut modifier n'importe quel profil
+      // owner peut modifier les profils des employés de son salon
+      allow update: if isAuthenticated() && (
+        request.auth.uid == userId ||
+        isSuperAdmin() ||
+        (isOwner() && resource.data.salonId == getUserProfile().salonId && resource.data.role == 'employee')
+      );
+
+      // Suppression: uniquement super_admin
+      allow delete: if isSuperAdmin();
+    }
+
+    // ============================================
+    // SALONS COLLECTION
+    // ============================================
+    match /salons/{salonId} {
+      // Lecture: membres du salon ou super_admin
+      allow read: if canAccessSalon(salonId);
+
+      // Création: utilisateur authentifié (lors de l'onboarding)
+      allow create: if isAuthenticated() && (
+        // Le créateur doit être le propriétaire
+        request.resource.data.createdBy == request.auth.uid
+      );
+
+      // Mise à jour: owner du salon ou super_admin
+      allow update: if canManageSalon(salonId);
+
+      // Suppression: uniquement super_admin
+      allow delete: if isSuperAdmin();
+    }
+
+    // ============================================
+    // SALON CONFIGS COLLECTION
+    // ============================================
+    match /salonConfigs/{salonId} {
+      // Lecture: membres du salon ou super_admin
+      allow read: if canAccessSalon(salonId);
+
+      // Création/Mise à jour: owner du salon ou super_admin
+      allow create, update: if canManageSalon(salonId);
+
+      // Suppression: uniquement super_admin
+      allow delete: if isSuperAdmin();
+    }
+
+    // ============================================
+    // CLIENTS COLLECTION
+    // ============================================
+    match /clients/{clientId} {
+      // Lecture: membres du salon du client ou super_admin
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() ||
+        belongsToSalon(resource.data.salonId)
+      );
+
+      // Création: membres du salon peuvent créer des clients pour leur salon
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() ||
+        belongsToSalon(request.resource.data.salonId)
+      ) && (
+        // Validation: salonId requis
+        request.resource.data.salonId != null &&
+        // Validation: champs requis
+        request.resource.data.first_name != null &&
+        request.resource.data.last_name != null
+      );
+
+      // Mise à jour: membres du salon ou super_admin
+      // Ne peut pas changer le salonId (sauf super_admin)
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (belongsToSalon(resource.data.salonId) &&
+         request.resource.data.salonId == resource.data.salonId)
+      );
+
+      // Suppression: owner/super_admin uniquement
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (isOwner() && belongsToSalon(resource.data.salonId))
+      );
+    }
+
+    // ============================================
+    // PRESTATIONS COLLECTION
+    // ============================================
+    match /prestations/{prestationId} {
+      // Lecture: membres du salon ou super_admin
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() ||
+        belongsToSalon(resource.data.salonId)
+      );
+
+      // Création: membres du salon peuvent créer des prestations pour leur salon
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() ||
+        belongsToSalon(request.resource.data.salonId)
+      ) && (
+        // Validation: champs requis
+        request.resource.data.salonId != null &&
+        request.resource.data.client_id != null &&
+        request.resource.data.date != null &&
+        request.resource.data.price != null
+      );
+
+      // Mise à jour: membres du salon ou super_admin
+      // Ne peut pas changer le salonId (sauf super_admin)
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (belongsToSalon(resource.data.salonId) &&
+         request.resource.data.salonId == resource.data.salonId)
+      );
+
+      // Suppression: membres du salon ou super_admin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        belongsToSalon(resource.data.salonId)
+      );
+    }
+
+    // ============================================
+    // EMAIL VERIFICATION CODES COLLECTION
+    // ============================================
+    match /emailVerificationCodes/{codeId} {
+      // Lecture: uniquement pour l'utilisateur concerné
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Création: utilisateur authentifié peut créer son propre code
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+
+      // Mise à jour: utilisateur concerné (pour incrémenter attempts)
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Suppression: utilisateur concerné ou super_admin
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isSuperAdmin()
+      );
+    }
+
+    // ============================================
+    // CATCH-ALL: Refuser tout le reste
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

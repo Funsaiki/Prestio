@@ -1,21 +1,53 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
+import { useAuth } from '../contexts/AuthContext';
 import { ClientForm } from '../components/ClientForm';
 import { PrestationForm } from '../components/PrestationForm';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { Modal } from '../components/Modal';
-import { TYPE_POSE_LABELS } from '../types';
+import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
 import type { Client, Prestation } from '../types';
 
 export function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { salonConfig } = useAuth();
   const { updateClient, deleteClient } = useClients();
   const { prestations, addPrestation, updatePrestation, deletePrestation } = usePrestations(id);
+
+  // Champs de prestation configurés
+  const prestationFields = useMemo(() => {
+    return salonConfig?.prestationFields ?? DEFAULT_SALON_CONFIG.prestationFields;
+  }, [salonConfig?.prestationFields]);
+
+  // Helper pour obtenir le label d'une valeur de champ select
+  const getFieldLabel = (fieldName: string, value: unknown): string => {
+    if (!value) return '';
+    const field = prestationFields.find(f => f.name === fieldName);
+    if (field?.type === 'select' && field.options) {
+      const option = field.options.find(opt => opt.value === value);
+      return option?.label || String(value);
+    }
+    return String(value);
+  };
+
+  // Helper pour obtenir le titre de la prestation (premier champ select ou "Prestation")
+  const getPrestationTitle = (prestation: Prestation): string => {
+    // Chercher le premier champ select avec une valeur
+    for (const field of prestationFields) {
+      if (field.type === 'select') {
+        const value = prestation.values[field.name];
+        if (value) {
+          return getFieldLabel(field.name, value);
+        }
+      }
+    }
+    return 'Prestation';
+  };
 
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +89,56 @@ export function ClientDetail() {
   const futurePrestations = prestations.filter(p => isFuture(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime());
   const pastPrestations = prestations.filter(p => !isToday(p.date) && !isFuture(p.date)).sort((a, b) => b.date.getTime() - a.date.getTime());
 
+  // Rendu des valeurs de champs personnalisés
+  const renderFieldValues = (prestation: Prestation) => {
+    const badges: React.ReactNode[] = [];
+    const colors = [
+      'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+      'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300',
+      'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
+      'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+    ];
+
+    let colorIndex = 0;
+
+    for (const field of prestationFields) {
+      const value = prestation.values[field.name];
+      if (value === undefined || value === null || value === '') continue;
+
+      // Skip le premier champ select (utilisé comme titre)
+      if (field.type === 'select' && getPrestationTitle(prestation) === getFieldLabel(field.name, value)) {
+        continue;
+      }
+
+      let displayValue: string;
+      if (field.type === 'select') {
+        displayValue = getFieldLabel(field.name, value);
+      } else if (field.type === 'checkbox') {
+        if (!value) continue; // Ne pas afficher si false
+        displayValue = field.label;
+      } else if (field.type === 'number' && field.unit) {
+        displayValue = `${value} ${field.unit}`;
+      } else {
+        displayValue = String(value);
+      }
+
+      badges.push(
+        <span
+          key={field.id}
+          className={`px-2.5 py-1 ${colors[colorIndex % colors.length]} text-sm rounded-lg font-medium`}
+        >
+          {field.type !== 'checkbox' && field.type !== 'select' && `${field.label}: `}
+          {displayValue}
+        </span>
+      );
+      colorIndex++;
+    }
+
+    return badges.length > 0 ? (
+      <div className="flex flex-wrap gap-2 mb-3">{badges}</div>
+    ) : null;
+  };
+
   const renderPrestationCard = (prestation: Prestation, index: number) => (
     <div
       key={prestation.id}
@@ -68,7 +150,7 @@ export function ClientDetail() {
           {/* Header: Type + Date */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="font-medium text-gray-900 dark:text-white text-lg">
-              {prestation.typePose && TYPE_POSE_LABELS[prestation.typePose] ? TYPE_POSE_LABELS[prestation.typePose] : 'Prestation'}
+              {getPrestationTitle(prestation)}
             </span>
             <span className="px-2.5 py-1 bg-gold/10 text-gold text-sm rounded-full font-medium">
               {prestation.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -77,37 +159,14 @@ export function ClientDetail() {
             </span>
           </div>
 
-          {/* Details: Courbe, Longueur, Mapping */}
-          {(prestation.courbe || prestation.longueur || prestation.mapping) && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {prestation.courbe && (
-                <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm rounded-lg font-medium">
-                  Courbure {prestation.courbe}
-                </span>
-              )}
-              {prestation.longueur && (
-                <span className="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-sm rounded-lg font-medium">
-                  {prestation.longueur} mm
-                </span>
-              )}
-              {prestation.mapping && (
-                <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm rounded-lg font-medium">
-                  {prestation.mapping}
-                </span>
-              )}
-            </div>
-          )}
+          {/* Details: Champs personnalisés */}
+          {renderFieldValues(prestation)}
 
-          {/* Footer: Prix + Mode de paiement */}
+          {/* Footer: Prix */}
           <div className="flex items-center gap-3">
             <span className="text-lg font-semibold text-gray-900 dark:text-white">
               {prestation.prix.toFixed(2)} €
             </span>
-            {prestation.modePaiement && (
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {prestation.modePaiement}
-              </span>
-            )}
           </div>
         </div>
 
@@ -155,15 +214,26 @@ export function ClientDetail() {
     const unsubscribe = onSnapshot(doc(db, 'clients', id), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
+
+        // Support ancien format et nouveau format
+        let values: Record<string, unknown> = {};
+        if (data.values) {
+          values = data.values;
+        } else if (data.glasses !== undefined) {
+          values.lunettes = data.glasses;
+        }
+
         setClient({
           id: docSnap.id,
+          salonId: data.salonId || '',
           nom: data.last_name || '',
           prenom: data.first_name || '',
           telephone: data.phone || '',
           email: data.mail || '',
-          lunettes: data.glasses || false,
           notes: data.notes || '',
           dateCreation: data.created_at?.toDate() || new Date(),
+          createdBy: data.createdBy,
+          values,
         });
       } else {
         setClient(null);
@@ -174,7 +244,7 @@ export function ClientDetail() {
     return () => unsubscribe();
   }, [id]);
 
-  const handleUpdate = async (data: Omit<Client, 'id' | 'dateCreation'>) => {
+  const handleUpdate = async (data: Omit<Client, 'id' | 'dateCreation' | 'salonId' | 'createdBy'>) => {
     if (!id) return;
     await updateClient(id, data);
     closeEditForm();
@@ -186,7 +256,7 @@ export function ClientDetail() {
     navigate('/');
   };
 
-  const handleSubmitPrestation = async (data: Omit<Prestation, 'id' | 'clientId'>) => {
+  const handleSubmitPrestation = async (data: Omit<Prestation, 'id' | 'clientId' | 'salonId' | 'createdBy' | 'createdAt'>) => {
     if (!id) return;
     if (prestationToEdit) {
       await updatePrestation(prestationToEdit.id, data);
@@ -214,6 +284,9 @@ export function ClientDetail() {
       </div>
     );
   }
+
+  // Champs personnalisés du client
+  const clientFields = salonConfig?.clientFields ?? DEFAULT_SALON_CONFIG.clientFields;
 
   return (
     <div className="h-full flex flex-col animate-fade-in">
@@ -307,15 +380,33 @@ export function ClientDetail() {
                   <span>{client.email}</span>
                 </div>
               )}
-              {client.lunettes && (
-                <div className="flex items-center gap-3 text-gold">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  <span className="text-sm font-medium">Porte des lunettes</span>
-                </div>
-              )}
+              {/* Champs personnalisés */}
+              {clientFields.map(field => {
+                const value = client.values?.[field.name];
+                if (value === undefined || value === null || value === '') return null;
+
+                let displayValue: React.ReactNode;
+                if (field.type === 'checkbox') {
+                  if (!value) return null;
+                  displayValue = field.label;
+                } else if (field.type === 'select' && field.options) {
+                  const option = field.options.find(opt => opt.value === value);
+                  displayValue = option?.label || String(value);
+                } else {
+                  displayValue = String(value) + (field.unit ? ` ${field.unit}` : '');
+                }
+
+                return (
+                  <div key={field.id} className="flex items-center gap-3 text-gold">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span className="text-sm font-medium">
+                      {field.type === 'checkbox' ? displayValue : `${field.label}: ${displayValue}`}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Notes */}

@@ -1,39 +1,26 @@
+// Re-export multi-tenant types
+export * from './multi-tenant';
+
 export interface Client {
   id: string;
-  nom: string;
-  prenom: string;
-  telephone: string;
-  email: string;
-  lunettes: boolean;
-  notes: string;
+  salonId: string;           // Multi-tenant
+  nom: string;               // Champ fixe
+  prenom: string;            // Champ fixe
+  telephone: string;         // Champ fixe
+  email: string;             // Champ fixe
+  notes: string;             // Champ fixe
   dateCreation: Date;
+  createdBy?: string;        // Audit
+  values?: Record<string, unknown>;  // Champs personnalisés
 }
 
 export interface Prestation {
   id: string;
+  salonId: string;           // Multi-tenant
   clientId: string;
-  typePose: TypePose;
-  date: Date;
-  courbe: Courbe | '';
-  longueur: string;
-  mapping: string;
-  modePaiement: string;
-  prix: number;
+  date: Date;                // Champ fixe - toujours requis
+  prix: number;              // Champ fixe - toujours requis
+  values: Record<string, unknown>;  // Tous les autres champs (dynamiques)
+  createdBy?: string;        // Audit
+  createdAt?: Date;          // Audit
 }
-
-export type TypePose =
-  | 'cil_a_cil'
-  | 'mixte'
-  | 'volume_russe'
-  | 'mega_volume';
-
-export const TYPE_POSE_LABELS: Record<TypePose, string> = {
-  cil_a_cil: 'Cil à cil',
-  mixte: 'Mixte',
-  volume_russe: 'Volume russe',
-  mega_volume: 'Mega volume',
-};
-
-export type Courbe = 'C' | 'D' | 'L' | 'M';
-
-export const COURBE_OPTIONS: Courbe[] = ['C', 'D', 'L', 'M'];

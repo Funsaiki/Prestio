@@ -100,7 +100,7 @@ export function ClientList() {
     };
   }, [clients, prestations, search, isToday, isFuture]);
 
-  const handleSubmit = useCallback(async (data: Omit<Client, 'id' | 'dateCreation'>) => {
+  const handleSubmit = useCallback(async (data: Omit<Client, 'id' | 'dateCreation' | 'salonId' | 'createdBy'>) => {
     await addClient(data);
     closeForm();
   }, [addClient, closeForm]);

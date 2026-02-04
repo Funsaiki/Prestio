@@ -9,73 +9,103 @@ import {
   query,
   where,
   Timestamp,
+  orderBy,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { useAuth } from '../contexts/AuthContext';
 import type { Prestation } from '../types';
 
 export function usePrestations(clientId?: string) {
+  const { currentSalon, firebaseUser } = useAuth();
   const [prestations, setPrestations] = useState<Prestation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentSalon?.id) {
+      setPrestations([]);
+      setLoading(false);
+      return;
+    }
+
+    // Requêtes optimisées avec index composites
     let q;
     if (clientId) {
       q = query(
         collection(db, 'prestations'),
-        where('client_id', '==', clientId)
+        where('client_id', '==', clientId),
+        where('salonId', '==', currentSalon.id),
+        orderBy('date', 'desc')
       );
     } else {
-      q = query(collection(db, 'prestations'));
+      q = query(
+        collection(db, 'prestations'),
+        where('salonId', '==', currentSalon.id),
+        orderBy('date', 'desc')
+      );
     }
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const prestationsData = snapshot.docs.map((doc) => {
         const data = doc.data();
+
+        // Support ancien format (migration) et nouveau format
+        let values: Record<string, unknown> = {};
+
+        if (data.values) {
+          // Nouveau format
+          values = data.values;
+        } else {
+          // Ancien format - migrer les champs vers values
+          if (data.type) values.type_pose = data.type;
+          if (data.curve) values.courbe = data.curve;
+          if (data.length) values.longueur = data.length;
+          if (data.mapping) values.mapping = data.mapping;
+          if (data.payment) values.mode_paiement = data.payment;
+        }
+
         return {
           id: doc.id,
+          salonId: data.salonId || currentSalon.id,
           clientId: data.client_id || '',
-          typePose: data.type || 'cil_a_cil',
           date: data.date?.toDate() || new Date(),
-          courbe: data.curve || '',
-          longueur: data.length || '',
-          mapping: data.mapping || '',
-          modePaiement: data.payment || '',
-          prix: data.price || 0,
+          prix: data.price ?? data.prix ?? 0,
+          values,
+          createdBy: data.createdBy,
+          createdAt: data.createdAt?.toDate(),
         };
       }) as Prestation[];
-      // Tri côté client (plus récent en premier)
-      prestationsData.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+      // Déjà trié par Firestore, pas besoin de tri côté client
       setPrestations(prestationsData);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [clientId]);
+  }, [clientId, currentSalon?.id]);
 
-  const addPrestation = useCallback(async (prestation: Omit<Prestation, 'id'>) => {
+  const addPrestation = useCallback(async (prestation: Omit<Prestation, 'id' | 'salonId' | 'createdBy' | 'createdAt'>) => {
+    if (!currentSalon?.id) throw new Error('No salon selected');
+
     await addDoc(collection(db, 'prestations'), {
+      salonId: currentSalon.id,
+      createdBy: firebaseUser?.uid,
+      createdAt: Timestamp.now(),
       client_id: prestation.clientId,
-      type: prestation.typePose,
       date: Timestamp.fromDate(prestation.date),
-      curve: prestation.courbe,
-      length: prestation.longueur,
-      mapping: prestation.mapping,
-      payment: prestation.modePaiement,
       price: prestation.prix,
+      values: prestation.values || {},
     });
-  }, []);
+  }, [currentSalon?.id, firebaseUser?.uid]);
 
   const updatePrestation = useCallback(async (id: string, prestation: Partial<Prestation>) => {
     const prestationRef = doc(db, 'prestations', id);
     const updateData: Record<string, unknown> = {};
+
     if (prestation.clientId !== undefined) updateData.client_id = prestation.clientId;
-    if (prestation.typePose !== undefined) updateData.type = prestation.typePose;
     if (prestation.date !== undefined) updateData.date = Timestamp.fromDate(prestation.date);
-    if (prestation.courbe !== undefined) updateData.curve = prestation.courbe;
-    if (prestation.longueur !== undefined) updateData.length = prestation.longueur;
-    if (prestation.mapping !== undefined) updateData.mapping = prestation.mapping;
-    if (prestation.modePaiement !== undefined) updateData.payment = prestation.modePaiement;
     if (prestation.prix !== undefined) updateData.price = prestation.prix;
+    if (prestation.values !== undefined) updateData.values = prestation.values;
+
     await updateDoc(prestationRef, updateData);
   }, []);
 

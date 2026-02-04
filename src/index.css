@@ -107,6 +107,57 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* Custom checkbox styling */
+.checkbox-gold {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.checkbox-gold:hover {
+  border-color: var(--color-gold);
+}
+
+.checkbox-gold:checked {
+  background-color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.checkbox-gold:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-gold:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 168, 108, 0.3);
+}
+
+.dark .checkbox-gold {
+  background-color: #374151;
+  border-color: #4b5563;
+}
+
+.dark .checkbox-gold:checked {
+  background-color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

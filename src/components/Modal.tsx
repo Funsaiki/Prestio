@@ -7,9 +7,16 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export function Modal({ isOpen, title, onClose, children, footer }: ModalProps) {
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+};
+
+export function Modal({ isOpen, title, onClose, children, footer, size = 'md' }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [animationClass, setAnimationClass] = useState<'in' | 'out'>('in');
   const closingRef = useRef(false);
@@ -53,7 +60,7 @@ export function Modal({ isOpen, title, onClose, children, footer }: ModalProps) 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
-      <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] flex flex-col ${modalClass}`}>
+      <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl ${sizeClasses[size]} w-full mx-4 max-h-[90vh] flex flex-col ${modalClass}`}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <h3 className="font-elegant text-xl font-semibold text-gray-900 dark:text-white">
             {title}
