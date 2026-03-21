@@ -508,7 +508,7 @@ export function SuperAdmin() {
             Super Admin
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Gestion de tous les salons
+            Gestion de tous les établissements
           </p>
         </div>
         <div className="flex gap-2">
@@ -536,7 +536,7 @@ export function SuperAdmin() {
       {/* Stats summary */}
       <div className="grid grid-cols-3 gap-4 mb-6 flex-shrink-0">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Total salons</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Total établissements</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">{salons.length}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md">
@@ -558,10 +558,10 @@ export function SuperAdmin() {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-semibold text-gray-900 dark:text-white">
-              Clients orphelins (salon supprimé)
+              Clients orphelins (établissement supprimé)
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Clients dont le salon n'existe plus
+              Clients dont l'établissement n'existe plus
             </p>
           </div>
           <button
@@ -587,7 +587,7 @@ export function SuperAdmin() {
                     onChange={(e) => setOrphanedDestSalonId(e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                   >
-                    <option value="">Sélectionner le salon destination</option>
+                    <option value="">Sélectionner l'établissement destination</option>
                     {salons.map((salon) => (
                       <option key={salon.id} value={salon.id}>
                         {salon.name}
@@ -632,7 +632,7 @@ export function SuperAdmin() {
                           {client.nom} {client.prenom}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {client.email || 'Pas d\'email'} • Ancien salon: {client.salonId.slice(0, 8)}...
+                          {client.email || 'Pas d\'email'} • Ancien établissement: {client.salonId.slice(0, 8)}...
                         </div>
                       </div>
                     </label>
@@ -652,7 +652,7 @@ export function SuperAdmin() {
               Configurations manquantes
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Salons sans salonConfig associé
+              Établissements sans configuration associée
             </p>
           </div>
           <button
@@ -668,7 +668,7 @@ export function SuperAdmin() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-amber-600 dark:text-amber-400">
-                {salonsWithoutConfig.length} salon(s) sans configuration
+                {salonsWithoutConfig.length} établissement(s) sans configuration
               </span>
               <button
                 onClick={createAllMissingConfigs}
@@ -794,11 +794,11 @@ export function SuperAdmin() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex-1 flex flex-col min-h-0">
         {loading ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Chargement des salons...
+            Chargement des établissements...
           </div>
         ) : salons.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Aucun salon enregistré
+            Aucun établissement enregistré
           </div>
         ) : (
           <div className="overflow-y-auto flex-1">
@@ -806,7 +806,7 @@ export function SuperAdmin() {
               <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Salon
+                    Établissement
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Statut
@@ -910,14 +910,14 @@ export function SuperAdmin() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Salon source
+                    Établissement source
                   </label>
                   <select
                     value={sourceSalonId}
                     onChange={(e) => handleSourceSalonChange(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold focus:border-transparent"
                   >
-                    <option value="">Sélectionner un salon</option>
+                    <option value="">Sélectionner un établissement</option>
                     {salons.map((salon) => (
                       <option key={salon.id} value={salon.id}>
                         {salon.name} ({salon.clientCount} clients)
@@ -927,7 +927,7 @@ export function SuperAdmin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Salon destination
+                    Établissement destination
                   </label>
                   <select
                     value={destSalonId}
@@ -938,7 +938,7 @@ export function SuperAdmin() {
                     disabled={!sourceSalonId}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold focus:border-transparent disabled:opacity-50"
                   >
-                    <option value="">Sélectionner un salon</option>
+                    <option value="">Sélectionner un établissement</option>
                     {salons
                       .filter((s) => s.id !== sourceSalonId)
                       .map((salon) => (
@@ -983,7 +983,7 @@ export function SuperAdmin() {
                     </div>
                   ) : clientsToMigrate.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                      Aucun client dans ce salon
+                      Aucun client dans cet établissement
                     </div>
                   ) : (
                     <div className="border border-gray-200 dark:border-gray-700 rounded-lg max-h-60 overflow-y-auto">

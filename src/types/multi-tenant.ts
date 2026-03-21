@@ -73,7 +73,7 @@ export interface CustomField {
   placeholder?: string;   // Placeholder pour text/textarea
 }
 
-// ===== Config par défaut pour nouveaux salons (extensions cils) =====
+// ===== Config par défaut pour nouveaux établissements =====
 
 export const DEFAULT_PRESTATION_FIELDS: CustomField[] = [
   {

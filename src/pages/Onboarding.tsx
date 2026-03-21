@@ -69,7 +69,7 @@ export function Onboarding() {
   const handleSalonSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!salonData.name.trim()) {
-      setError('Le nom du salon est requis');
+      setError('Le nom de l\'établissement est requis');
       return;
     }
     setError('');
@@ -140,7 +140,7 @@ export function Onboarding() {
       window.location.reload();
     } catch (err) {
       console.error('Error creating salon:', err);
-      setError('Une erreur est survenue lors de la création du salon');
+      setError('Une erreur est survenue lors de la création de l\'établissement');
     } finally {
       setLoading(false);
     }
@@ -188,7 +188,7 @@ export function Onboarding() {
             <>
               <div className="text-center mb-6">
                 <h2 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-cream">
-                  Créez votre salon
+                  Créez votre établissement
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                   Commençons par les informations de base
@@ -199,7 +199,7 @@ export function Onboarding() {
                 {/* Logo upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                    Logo du salon
+                    Logo de l'établissement
                   </label>
                   <div className="flex items-center gap-4">
                     <div
@@ -254,7 +254,7 @@ export function Onboarding() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                    Nom du salon *
+                    Nom de l'établissement *
                   </label>
                   <input
                     type="text"
@@ -262,7 +262,7 @@ export function Onboarding() {
                     value={salonData.name}
                     onChange={(e) => setSalonData({ ...salonData, name: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder="Ex: Institut Beauté"
+                    placeholder="Ex: Mon Entreprise"
                   />
                 </div>
 
@@ -294,14 +294,14 @@ export function Onboarding() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                    Email du salon
+                    Email de l'établissement
                   </label>
                   <input
                     type="email"
                     value={salonData.email}
                     onChange={(e) => setSalonData({ ...salonData, email: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder="contact@salon.com"
+                    placeholder="contact@monentreprise.com"
                   />
                 </div>
 
@@ -387,7 +387,7 @@ export function Onboarding() {
                 </div>
 
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  En cliquant sur "Créer mon salon", vous serez redirigé vers la page de paiement sécurisé.
+                  En cliquant sur "Créer mon établissement", vous serez redirigé vers la page de paiement sécurisé.
                 </p>
               </div>
 
@@ -403,7 +403,7 @@ export function Onboarding() {
                   disabled={loading}
                   className="flex-1 py-2.5 bg-gold text-white rounded-xl hover:bg-gold-light disabled:opacity-50 transition-all duration-200 font-medium shadow-md hover:shadow-lg cursor-pointer"
                 >
-                  {loading ? 'Création...' : 'Créer mon salon'}
+                  {loading ? 'Création...' : 'Créer mon établissement'}
                 </button>
               </div>
             </>

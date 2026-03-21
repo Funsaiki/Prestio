@@ -165,7 +165,7 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
 
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Nom du salon *</label>
+            <label className={labelClass}>Nom de l'établissement *</label>
             <input
               type="text"
               required

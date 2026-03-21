@@ -65,7 +65,7 @@ export function VerifyEmail() {
         {
           to_email: firebaseUser.email,
           verification_code: verificationCode,
-          app_name: import.meta.env.VITE_APP_NAME || 'Gestion Clients',
+          app_name: import.meta.env.VITE_APP_NAME || 'Prestio',
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );

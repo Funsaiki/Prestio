@@ -98,7 +98,7 @@ export function Admin() {
 
   const handleTenancyMigrate = async () => {
     if (!currentSalon?.id) {
-      setTenancyError('Aucun salon sélectionné');
+      setTenancyError('Aucun établissement sélectionné');
       return;
     }
 
@@ -135,11 +135,11 @@ export function Admin() {
 
   const handleLinkUser = async (userId: string) => {
     if (!currentSalon?.id) {
-      setUsersError('Aucun salon sélectionné');
+      setUsersError('Aucun établissement sélectionné');
       return;
     }
 
-    if (!window.confirm(`Lier cet utilisateur au salon "${currentSalon.name}" ?`)) {
+    if (!window.confirm(`Lier cet utilisateur à l'établissement "${currentSalon.name}" ?`)) {
       return;
     }
 
@@ -177,10 +177,10 @@ export function Admin() {
             Gestion des utilisateurs
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Gérez les utilisateurs qui ne sont pas encore liés à un salon.
+            Gérez les utilisateurs qui ne sont pas encore liés à un établissement.
             {currentSalon && (
               <span className="block mt-2 text-gold font-medium">
-                Salon cible : {currentSalon.name}
+                Établissement cible : {currentSalon.name}
               </span>
             )}
           </p>
@@ -204,7 +204,7 @@ export function Admin() {
           {orphanUsers.length > 0 && (
             <div className="space-y-2">
               <h3 className="font-medium text-gray-800 dark:text-white mb-2">
-                Utilisateurs sans salon ({orphanUsers.length})
+                Utilisateurs sans établissement ({orphanUsers.length})
               </h3>
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg divide-y divide-gray-200 dark:divide-gray-600">
                 {orphanUsers.map((user) => (
@@ -222,7 +222,7 @@ export function Admin() {
                       disabled={linkingUserId === user.id || !currentSalon}
                       className="px-3 py-1.5 bg-gold/10 text-gold hover:bg-gold/20 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 cursor-pointer"
                     >
-                      {linkingUserId === user.id ? 'Liaison...' : 'Lier au salon'}
+                      {linkingUserId === user.id ? 'Liaison...' : 'Lier à l\'établissement'}
                     </button>
                   </div>
                 ))}
@@ -240,13 +240,13 @@ export function Admin() {
         {/* Migration Multi-tenant */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Migration des données vers un salon
+            Migration des données vers un établissement
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Cet outil permet de migrer les clients et prestations existants (sans salonId) vers votre salon actuel.
+            Cet outil permet de migrer les clients et prestations existants (sans salonId) vers votre établissement actuel.
             {currentSalon && (
               <span className="block mt-2 text-gold font-medium">
-                Salon cible : {currentSalon.name}
+                Établissement cible : {currentSalon.name}
               </span>
             )}
           </p>
@@ -267,7 +267,7 @@ export function Admin() {
                 className="px-4 py-2 text-white rounded-xl transition-all duration-200 disabled:opacity-50 cursor-pointer"
                 style={{ backgroundColor: 'var(--color-gold)' }}
               >
-                Migrer vers mon salon
+                Migrer vers mon établissement
               </button>
             )}
           </div>
@@ -289,7 +289,7 @@ export function Admin() {
                       <div className="text-xl font-bold text-gray-900 dark:text-white">{tenancyPreview.clients.total}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-amber-600 dark:text-amber-400">Sans salon</div>
+                      <div className="text-sm text-amber-600 dark:text-amber-400">Sans établissement</div>
                       <div className="text-xl font-bold text-amber-700 dark:text-amber-300">{tenancyPreview.clients.orphans}</div>
                     </div>
                   </div>
@@ -302,7 +302,7 @@ export function Admin() {
                       <div className="text-xl font-bold text-gray-900 dark:text-white">{tenancyPreview.prestations.total}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-amber-600 dark:text-amber-400">Sans salon</div>
+                      <div className="text-sm text-amber-600 dark:text-amber-400">Sans établissement</div>
                       <div className="text-xl font-bold text-amber-700 dark:text-amber-300">{tenancyPreview.prestations.orphans}</div>
                     </div>
                   </div>
@@ -311,7 +311,7 @@ export function Admin() {
 
               {!hasOrphans && (
                 <p className="text-emerald-600 dark:text-emerald-400">
-                  ✓ Toutes les données sont déjà associées à un salon !
+                  ✓ Toutes les données sont déjà associées à un établissement !
                 </p>
               )}
             </div>

@@ -97,7 +97,7 @@ export function SalonSelector() {
         <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 animate-scale-in origin-top-right">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
             <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1">
-              Changer de salon
+              Changer d'établissement
             </div>
           </div>
 
@@ -108,7 +108,7 @@ export function SalonSelector() {
               </div>
             ) : salons.length === 0 ? (
               <div className="px-2 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
-                Aucun salon
+                Aucun établissement
               </div>
             ) : (
               <>
@@ -124,7 +124,7 @@ export function SalonSelector() {
                       </svg>
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="text-sm font-medium text-gold">Mon salon</div>
+                      <div className="text-sm font-medium text-gold">Mon établissement</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">Revenir à mon espace</div>
                     </div>
                   </button>
