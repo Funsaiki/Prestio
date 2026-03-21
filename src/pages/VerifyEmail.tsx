@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { doc, setDoc, getDoc, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { signOut } from 'firebase/auth';
 
 // Generate a 6-digit code
 function generateVerificationCode(): string {
@@ -49,8 +50,9 @@ export function VerifyEmail() {
       const expiresAt = Timestamp.fromDate(new Date(Date.now() + 15 * 60 * 1000)); // 15 minutes
 
       // Store in Firestore
-      await setDoc(doc(db, 'emailVerifications', firebaseUser.email), {
+      await setDoc(doc(db, 'emailVerificationCodes', firebaseUser.email), {
         code: verificationCode,
+        userId: firebaseUser.uid,
         expiresAt,
         attempts: 0,
         createdAt: Timestamp.now(),
@@ -91,7 +93,7 @@ export function VerifyEmail() {
     setError('');
 
     try {
-      const docRef = doc(db, 'emailVerifications', firebaseUser.email);
+      const docRef = doc(db, 'emailVerificationCodes', firebaseUser.email);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -219,6 +221,10 @@ export function VerifyEmail() {
           </p>
         </div>
 
+        {error && !codeSent && (
+          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+        )}
+
         {!codeSent ? (
           <button
             onClick={sendCode}
@@ -287,6 +293,15 @@ export function VerifyEmail() {
             </div>
           </div>
         )}
+        {/* Bouton déconnexion / retour */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => signOut(auth)}
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
+          >
+            &larr; Retour à la connexion
+          </button>
+        </div>
       </div>
     </div>
   );
