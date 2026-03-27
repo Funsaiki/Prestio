@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SalonSelector } from './components/SalonSelector';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -68,6 +68,12 @@ function AppContent() {
 
   if (!firebaseUser) {
     return <PublicRoutes />;
+  }
+
+  // Redirect away from public routes after login
+  const location = useLocation();
+  if (['/login', '/register'].includes(location.pathname)) {
+    return <Navigate to="/" replace />;
   }
 
   // User needs to verify email first
