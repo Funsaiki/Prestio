@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SalonSelector } from './components/SalonSelector';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
