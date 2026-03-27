@@ -17,6 +17,7 @@ const SuperAdmin = lazy(() => import('./pages/SuperAdmin').then(m => ({ default:
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail').then(m => ({ default: m.VerifyEmail })));
+const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
 
 // Composant de chargement
 function PageLoader() {
@@ -27,8 +28,10 @@ function PageLoader() {
   );
 }
 
+type AuthView = 'landing' | 'login' | 'register';
+
 function AuthScreen() {
-  const [showRegister, setShowRegister] = useState(false);
+  const [view, setView] = useState<AuthView>('landing');
 
   return (
     <ErrorBoundary>
@@ -37,10 +40,12 @@ function AuthScreen() {
           <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
         </div>
       }>
-        {showRegister ? (
-          <Register onSwitchToLogin={() => setShowRegister(false)} />
+        {view === 'register' ? (
+          <Register onSwitchToLogin={() => setView('login')} />
+        ) : view === 'login' ? (
+          <Login onSwitchToRegister={() => setView('register')} />
         ) : (
-          <Login onSwitchToRegister={() => setShowRegister(true)} />
+          <Landing onLogin={() => setView('login')} onRegister={() => setView('register')} />
         )}
       </Suspense>
     </ErrorBoundary>

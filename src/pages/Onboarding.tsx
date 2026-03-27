@@ -16,7 +16,7 @@ interface SalonFormData {
 }
 
 export function Onboarding() {
-  const { firebaseUser, userProfile, refreshSalon } = useAuth();
+  const { firebaseUser, userProfile, refreshSalon, logout } = useAuth();
   const [step, setStep] = useState<Step>('salon');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -408,6 +408,16 @@ export function Onboarding() {
               </div>
             </>
           )}
+
+          {/* Bouton déconnexion / retour */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={logout}
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
+            >
+              &larr; Retour à l'accueil
+            </button>
+          </div>
         </div>
       </div>
     </div>

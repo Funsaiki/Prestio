@@ -39,7 +39,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
             Connexion
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 animate-fade-in stagger-2">
-            Gestion de clientèle
+            Accédez à votre espace Prestio
           </p>
         </div>
 
