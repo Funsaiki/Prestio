@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface RegisterProps {
@@ -138,6 +139,15 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
               Se connecter
             </button>
           </p>
+        </div>
+
+        <div className="mt-4 text-center">
+          <Link
+            to="/"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
+            &larr; Retour à l'accueil
+          </Link>
         </div>
       </div>
     </div>

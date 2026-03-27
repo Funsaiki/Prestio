@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SalonSelector } from './components/SalonSelector';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -28,10 +28,8 @@ function PageLoader() {
   );
 }
 
-type AuthView = 'landing' | 'login' | 'register';
-
-function AuthScreen() {
-  const [view, setView] = useState<AuthView>('landing');
+function PublicRoutes() {
+  const navigate = useNavigate();
 
   return (
     <ErrorBoundary>
@@ -40,13 +38,11 @@ function AuthScreen() {
           <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
         </div>
       }>
-        {view === 'register' ? (
-          <Register onSwitchToLogin={() => setView('login')} />
-        ) : view === 'login' ? (
-          <Login onSwitchToRegister={() => setView('register')} />
-        ) : (
-          <Landing onLogin={() => setView('login')} onRegister={() => setView('register')} />
-        )}
+        <Routes>
+          <Route path="/login" element={<Login onSwitchToRegister={() => navigate('/register')} />} />
+          <Route path="/register" element={<Register onSwitchToLogin={() => navigate('/login')} />} />
+          <Route path="*" element={<Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />} />
+        </Routes>
       </Suspense>
     </ErrorBoundary>
   );
@@ -71,7 +67,7 @@ function AppContent() {
   }
 
   if (!firebaseUser) {
-    return <AuthScreen />;
+    return <PublicRoutes />;
   }
 
   // User needs to verify email first
@@ -91,7 +87,6 @@ function AppContent() {
   return (
     <RequireSalon>
       <RequireSubscription>
-        <BrowserRouter>
           <div className="h-screen flex flex-col bg-cream dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
             {/* Banner when viewing another salon */}
             {isViewingOtherSalon && (
@@ -208,7 +203,6 @@ function AppContent() {
               </ErrorBoundary>
             </main>
           </div>
-        </BrowserRouter>
       </RequireSubscription>
     </RequireSalon>
   );
@@ -216,9 +210,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
