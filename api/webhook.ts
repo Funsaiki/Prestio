@@ -92,11 +92,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const mappedStatus = statusMap[subscription.status] || subscription.status;
 
+        const periodEnd = (subscription as unknown as Record<string, unknown>).current_period_end as number | null;
+
         await updateSalonSubscription(salonId, {
           subscriptionStatus: mappedStatus,
           status: mappedStatus === 'active' ? 'active' : 'suspended',
-          subscriptionEndsAt: subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000)
+          subscriptionEndsAt: periodEnd
+            ? new Date(periodEnd * 1000)
             : null,
         });
         break;
@@ -116,7 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = invoice.subscription as string;
+        const subscriptionId = (invoice as unknown as Record<string, unknown>).subscription as string;
         if (!subscriptionId) break;
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
