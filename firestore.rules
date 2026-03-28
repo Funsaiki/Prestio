@@ -97,8 +97,14 @@ service cloud.firestore {
       // Lecture: membres du salon ou super_admin
       allow read: if canAccessSalon(salonId);
 
-      // Création/Mise à jour: owner du salon ou super_admin
-      allow create, update: if canManageSalon(salonId);
+      // Création: owner du salon, créateur du salon, ou super_admin
+      allow create: if canManageSalon(salonId) || (
+        isAuthenticated() &&
+        get(/databases/$(database)/documents/salons/$(salonId)).data.createdBy == request.auth.uid
+      );
+
+      // Mise à jour: owner du salon ou super_admin
+      allow update: if canManageSalon(salonId);
 
       // Suppression: uniquement super_admin
       allow delete: if isSuperAdmin();
