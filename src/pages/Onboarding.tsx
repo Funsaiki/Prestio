@@ -46,7 +46,7 @@ export function Onboarding() {
     try {
       const salonId = firebaseUser.uid;
 
-      // Create salon document with pending payment status
+      // 1. Create salon document
       await setDoc(doc(db, 'salons', salonId), {
         name: salonData.name,
         address: salonData.address,
@@ -63,16 +63,17 @@ export function Onboarding() {
         stripeSubscriptionId: null,
       });
 
-      // Create salon config
+      // 2. Link user to salon BEFORE creating config
+      // (Firestore rules check belongsToSalon for salonConfigs)
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        salonId,
+      }, { merge: true });
+
+      // 3. Create salon config (now user has salonId, rules will pass)
       await setDoc(doc(db, 'salonConfigs', salonId), {
         salonId,
         ...DEFAULT_SALON_CONFIG,
       });
-
-      // Update user profile with salonId
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        salonId,
-      }, { merge: true });
 
       // Refresh to load new salon data
       await refreshSalon();
