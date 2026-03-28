@@ -7,15 +7,17 @@ interface LoginProps {
 }
 
 export function Login({ onSwitchToRegister }: LoginProps) {
-  const { login } = useAuth();
+  const { login, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -24,6 +26,22 @@ export function Login({ onSwitchToRegister }: LoginProps) {
       setError('Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Veuillez entrer votre email pour réinitialiser votre mot de passe');
+      return;
+    }
+    setError('');
+    setSuccess('');
+
+    try {
+      await resetPassword(email);
+      setSuccess('Un email de réinitialisation a été envoyé à ' + email);
+    } catch {
+      setError('Impossible d\'envoyer l\'email de réinitialisation');
     }
   };
 
@@ -48,6 +66,11 @@ export function Login({ onSwitchToRegister }: LoginProps) {
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm animate-fade-in border border-red-200 dark:border-red-800">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-sm animate-fade-in border border-green-200 dark:border-green-800">
+              {success}
             </div>
           )}
 
@@ -75,6 +98,16 @@ export function Login({ onSwitchToRegister }: LoginProps) {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
             />
+          </div>
+
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={handleResetPassword}
+              className="text-sm text-gold hover:underline cursor-pointer"
+            >
+              Mot de passe oublié ?
+            </button>
           </div>
 
           <button
