@@ -72,12 +72,18 @@ function AppContent() {
     );
   }
 
+  const location = useLocation();
+
   if (!firebaseUser) {
+    // Redirect to / when logged out from a private route
+    const publicPaths = ['/', '/login', '/register', '/cgu', '/mentions-legales', '/confidentialite'];
+    if (!publicPaths.includes(location.pathname)) {
+      return <Navigate to="/" replace />;
+    }
     return <PublicRoutes />;
   }
 
   // Redirect away from public routes after login
-  const location = useLocation();
   if (['/login', '/register'].includes(location.pathname)) {
     return <Navigate to="/" replace />;
   }
