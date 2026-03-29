@@ -18,6 +18,7 @@ const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login }
 const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail').then(m => ({ default: m.VerifyEmail })));
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
+const Legal = lazy(() => import('./pages/Legal').then(m => ({ default: m.Legal })));
 
 // Composant de chargement
 function PageLoader() {
@@ -41,6 +42,7 @@ function PublicRoutes() {
         <Routes>
           <Route path="/login" element={<Login onSwitchToRegister={() => navigate('/register')} />} />
           <Route path="/register" element={<Register onSwitchToLogin={() => navigate('/login')} />} />
+          <Route path="/cgu" element={<Legal />} />
           <Route path="*" element={<Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />} />
         </Routes>
       </Suspense>
