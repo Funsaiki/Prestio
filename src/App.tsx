@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SalonSelector } from './components/SalonSelector';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -17,6 +17,10 @@ const SuperAdmin = lazy(() => import('./pages/SuperAdmin').then(m => ({ default:
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail').then(m => ({ default: m.VerifyEmail })));
+const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
+const Legal = lazy(() => import('./pages/Legal').then(m => ({ default: m.Legal })));
+const MentionsLegales = lazy(() => import('./pages/MentionsLegales').then(m => ({ default: m.MentionsLegales })));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 
 // Composant de chargement
 function PageLoader() {
@@ -27,8 +31,8 @@ function PageLoader() {
   );
 }
 
-function AuthScreen() {
-  const [showRegister, setShowRegister] = useState(false);
+function PublicRoutes() {
+  const navigate = useNavigate();
 
   return (
     <ErrorBoundary>
@@ -37,11 +41,14 @@ function AuthScreen() {
           <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
         </div>
       }>
-        {showRegister ? (
-          <Register onSwitchToLogin={() => setShowRegister(false)} />
-        ) : (
-          <Login onSwitchToRegister={() => setShowRegister(true)} />
-        )}
+        <Routes>
+          <Route path="/login" element={<Login onSwitchToRegister={() => navigate('/register')} />} />
+          <Route path="/register" element={<Register onSwitchToLogin={() => navigate('/login')} />} />
+          <Route path="/cgu" element={<Legal />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/confidentialite" element={<PrivacyPolicy />} />
+          <Route path="*" element={<Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />} />
+        </Routes>
       </Suspense>
     </ErrorBoundary>
   );
@@ -66,7 +73,13 @@ function AppContent() {
   }
 
   if (!firebaseUser) {
-    return <AuthScreen />;
+    return <PublicRoutes />;
+  }
+
+  // Redirect away from public routes after login
+  const location = useLocation();
+  if (['/login', '/register'].includes(location.pathname)) {
+    return <Navigate to="/" replace />;
   }
 
   // User needs to verify email first
@@ -86,7 +99,6 @@ function AppContent() {
   return (
     <RequireSalon>
       <RequireSubscription>
-        <BrowserRouter>
           <div className="h-screen flex flex-col bg-cream dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
             {/* Banner when viewing another salon */}
             {isViewingOtherSalon && (
@@ -203,7 +215,6 @@ function AppContent() {
               </ErrorBoundary>
             </main>
           </div>
-        </BrowserRouter>
       </RequireSubscription>
     </RequireSalon>
   );
@@ -211,9 +222,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

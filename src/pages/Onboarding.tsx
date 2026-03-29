@@ -1,9 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { compressImage } from '../utils/imageCompression';
 import { DEFAULT_SALON_CONFIG, SUBSCRIPTION_PRICE } from '../types/multi-tenant';
 
 type Step = 'salon' | 'confirm';
@@ -16,15 +14,10 @@ interface SalonFormData {
 }
 
 export function Onboarding() {
-  const { firebaseUser, userProfile, refreshSalon } = useAuth();
+  const { firebaseUser, userProfile, refreshSalon, logout } = useAuth();
   const [step, setStep] = useState<Step>('salon');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Logo state
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Salon form data
   const [salonData, setSalonData] = useState<SalonFormData>({
@@ -33,38 +26,6 @@ export function Onboarding() {
     phone: '',
     email: firebaseUser?.email || '',
   });
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setError('Veuillez sélectionner une image');
-        return;
-      }
-
-      if (file.size > 10 * 1024 * 1024) {
-        setError('L\'image ne doit pas dépasser 10 Mo');
-        return;
-      }
-
-      setLogoFile(file);
-      setError('');
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeLogo = () => {
-    setLogoFile(null);
-    setLogoPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleSalonSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,23 +37,6 @@ export function Onboarding() {
     setStep('confirm');
   };
 
-  const uploadLogo = async (salonId: string): Promise<string | null> => {
-    if (!logoFile) return null;
-
-    try {
-      // Compresser l'image avant upload (max 400x400 pour un logo)
-      const compressedBlob = await compressImage(logoFile, 400, 400, 0.85);
-
-      const logoRef = ref(storage, `salons/${salonId}/logo`);
-      await uploadBytes(logoRef, compressedBlob);
-      const downloadURL = await getDownloadURL(logoRef);
-      return downloadURL;
-    } catch (err) {
-      console.error('Error uploading logo:', err);
-      return null;
-    }
-  };
-
   const handleCreateSalon = async () => {
     if (!firebaseUser || !userProfile) return;
 
@@ -102,16 +46,13 @@ export function Onboarding() {
     try {
       const salonId = firebaseUser.uid;
 
-      // Upload logo if provided
-      const logoUrl = await uploadLogo(salonId);
-
-      // Create salon document with pending payment status
+      // 1. Create salon document
       await setDoc(doc(db, 'salons', salonId), {
         name: salonData.name,
         address: salonData.address,
         phone: salonData.phone,
         email: salonData.email,
-        logo: logoUrl,
+        logo: null,
         primaryColor: '#c9a86c',
         createdAt: Timestamp.now(),
         createdBy: firebaseUser.uid,
@@ -122,16 +63,17 @@ export function Onboarding() {
         stripeSubscriptionId: null,
       });
 
-      // Create salon config
+      // 2. Link user to salon BEFORE creating config
+      // (Firestore rules check belongsToSalon for salonConfigs)
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        salonId,
+      }, { merge: true });
+
+      // 3. Create salon config (now user has salonId, rules will pass)
       await setDoc(doc(db, 'salonConfigs', salonId), {
         salonId,
         ...DEFAULT_SALON_CONFIG,
       });
-
-      // Update user profile with salonId
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        salonId,
-      }, { merge: true });
 
       // Refresh to load new salon data
       await refreshSalon();
@@ -196,62 +138,6 @@ export function Onboarding() {
               </div>
 
               <form onSubmit={handleSalonSubmit} className="space-y-4">
-                {/* Logo upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                    Logo de l'établissement
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border-2 border-dashed transition-colors ${
-                        logoPreview
-                          ? 'border-gold'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-gold'
-                      }`}
-                    >
-                      {logoPreview ? (
-                        <img
-                          src={logoPreview}
-                          alt="Logo preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoChange}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label
-                        htmlFor="logo-upload"
-                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer text-sm font-medium"
-                      >
-                        {logoPreview ? 'Changer' : 'Choisir une image'}
-                      </label>
-                      {logoPreview && (
-                        <button
-                          type="button"
-                          onClick={removeLogo}
-                          className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-sm font-medium cursor-pointer"
-                        >
-                          Supprimer
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Format JPG, PNG ou GIF. Max 10 Mo (compressé automatiquement).
-                  </p>
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     Nom de l'établissement *
@@ -331,13 +217,9 @@ export function Onboarding() {
                 {/* Salon summary */}
                 <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                   <div className="flex items-center gap-3">
-                    {logoPreview ? (
-                      <img src={logoPreview} alt="Logo" className="w-12 h-12 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-white font-semibold">
-                        {salonData.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-white font-semibold">
+                      {salonData.name.charAt(0).toUpperCase()}
+                    </div>
                     <div>
                       <h3 className="font-semibold text-gray-800 dark:text-white">{salonData.name}</h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{salonData.email}</p>
@@ -408,6 +290,16 @@ export function Onboarding() {
               </div>
             </>
           )}
+
+          {/* Bouton déconnexion / retour */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={logout}
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
+            >
+              &larr; Retour à l'accueil
+            </button>
+          </div>
         </div>
       </div>
     </div>

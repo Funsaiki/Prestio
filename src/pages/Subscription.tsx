@@ -9,19 +9,12 @@ export function Subscription() {
 
   if (!currentSalon) return null;
 
-  const apiUrl = import.meta.env.VITE_PAYMENT_API_URL;
-
   const handlePayment = async () => {
-    if (!apiUrl) {
-      setError('Service de paiement non configuré. Contactez l\'administrateur.');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${apiUrl}/api/create-payment`, {
+      const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,8 +33,8 @@ export function Subscription() {
         throw new Error(data.error || 'Erreur lors de la création du paiement');
       }
 
-      // Redirect to Payplug payment page
-      window.location.href = data.payment_url;
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
     } catch (err) {
       console.error('Payment error:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du paiement');
@@ -158,7 +151,7 @@ export function Subscription() {
           </button>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
-            Paiement sécurisé par Payplug. Annulation possible à tout moment.
+            Paiement sécurisé par Stripe. Annulation possible à tout moment.
           </p>
 
           <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">

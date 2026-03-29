@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface LoginProps {
@@ -6,15 +7,17 @@ interface LoginProps {
 }
 
 export function Login({ onSwitchToRegister }: LoginProps) {
-  const { login } = useAuth();
+  const { login, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -23,6 +26,22 @@ export function Login({ onSwitchToRegister }: LoginProps) {
       setError('Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Veuillez entrer votre email pour réinitialiser votre mot de passe');
+      return;
+    }
+    setError('');
+    setSuccess('');
+
+    try {
+      await resetPassword(email);
+      setSuccess('Un email de réinitialisation a été envoyé à ' + email);
+    } catch {
+      setError('Impossible d\'envoyer l\'email de réinitialisation');
     }
   };
 
@@ -39,7 +58,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
             Connexion
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 animate-fade-in stagger-2">
-            Gestion de clientèle
+            Accédez à votre espace Prestio
           </p>
         </div>
 
@@ -47,6 +66,11 @@ export function Login({ onSwitchToRegister }: LoginProps) {
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm animate-fade-in border border-red-200 dark:border-red-800">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-sm animate-fade-in border border-green-200 dark:border-green-800">
+              {success}
             </div>
           )}
 
@@ -76,6 +100,16 @@ export function Login({ onSwitchToRegister }: LoginProps) {
             />
           </div>
 
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={handleResetPassword}
+              className="text-sm text-gold hover:underline cursor-pointer"
+            >
+              Mot de passe oublié ?
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -95,6 +129,15 @@ export function Login({ onSwitchToRegister }: LoginProps) {
               Créer un compte
             </button>
           </p>
+        </div>
+
+        <div className="mt-4 text-center">
+          <Link
+            to="/"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
+            &larr; Retour à l'accueil
+          </Link>
         </div>
       </div>
     </div>

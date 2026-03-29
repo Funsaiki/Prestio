@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /settings
+Disallow: /admin
+Disallow: /superadmin
+
+Sitemap: https://prestio.vercel.app/sitemap.xml

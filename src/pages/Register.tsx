@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface RegisterProps {
@@ -10,6 +11,7 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -34,6 +36,11 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber) {
       setError('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError('Vous devez accepter les conditions générales d\'utilisation');
       return;
     }
 
@@ -119,9 +126,28 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
             />
           </div>
 
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 rounded border-gray-300 dark:border-gray-600 text-gold focus:ring-gold cursor-pointer"
+            />
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              J'accepte les{' '}
+              <Link
+                to="/cgu"
+                target="_blank"
+                className="text-gold hover:underline font-medium"
+              >
+                conditions générales d'utilisation
+              </Link>
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !acceptedTerms}
             className="w-full py-2.5 bg-gold text-white rounded-xl hover:bg-gold-light disabled:opacity-50 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
           >
             {loading ? 'Création...' : 'Créer mon compte'}
@@ -138,6 +164,15 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
               Se connecter
             </button>
           </p>
+        </div>
+
+        <div className="mt-4 text-center">
+          <Link
+            to="/"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
+            &larr; Retour à l'accueil
+          </Link>
         </div>
       </div>
     </div>
