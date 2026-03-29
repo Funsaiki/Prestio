@@ -75,11 +75,9 @@ export function Onboarding() {
         ...DEFAULT_SALON_CONFIG,
       });
 
-      // Refresh to load new salon data
+      // Refresh salon data - the real-time listener on userProfile
+      // will detect the salonId change and update the app state
       await refreshSalon();
-
-      // Redirect to subscription/payment page
-      window.location.reload();
     } catch (err) {
       console.error('Error creating salon:', err);
       setError('Une erreur est survenue lors de la création de l\'établissement');

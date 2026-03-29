@@ -10,6 +10,7 @@ import { PrestationForm } from '../components/PrestationForm';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { Modal } from '../components/Modal';
 import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
+import { isToday, isFuture } from '../utils/date';
 import type { Client, Prestation } from '../types';
 
 export function ClientDetail() {
@@ -68,26 +69,11 @@ export function ClientDetail() {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const isToday = (date: Date): boolean => {
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const isFuture = (date: Date): boolean => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
-    return compareDate > today;
-  };
-
-  const todayPrestations = prestations.filter(p => isToday(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime());
-  const futurePrestations = prestations.filter(p => isFuture(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime());
-  const pastPrestations = prestations.filter(p => !isToday(p.date) && !isFuture(p.date)).sort((a, b) => b.date.getTime() - a.date.getTime());
+  const { todayPrestations, futurePrestations, pastPrestations } = useMemo(() => ({
+    todayPrestations: prestations.filter(p => isToday(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime()),
+    futurePrestations: prestations.filter(p => isFuture(p.date)).sort((a, b) => a.date.getTime() - b.date.getTime()),
+    pastPrestations: prestations.filter(p => !isToday(p.date) && !isFuture(p.date)).sort((a, b) => b.date.getTime() - a.date.getTime()),
+  }), [prestations]);
 
   // Rendu des valeurs de champs personnalisés
   const renderFieldValues = (prestation: Prestation) => {

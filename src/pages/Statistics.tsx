@@ -14,6 +14,10 @@ registerLocale('fr', fr);
 
 const COLORS = ['#c9a86c', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
+};
+
 type FilterPreset = 'thisMonth' | 'last3Months' | 'last6Months' | 'thisYear' | 'all' | 'custom';
 
 export function Statistics() {
@@ -193,9 +197,6 @@ export function Statistics() {
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
-  };
 
   return (
     <div className="h-full flex flex-col animate-fade-in">

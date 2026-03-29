@@ -4,6 +4,7 @@ import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
 import { ClientForm } from '../components/ClientForm';
 import { Modal } from '../components/Modal';
+import { isToday, isFuture } from '../utils/date';
 import type { Client } from '../types';
 
 type ClientWithPrestation = Client & { lastPrestationDate: Date | null };
@@ -26,25 +27,6 @@ export function ClientList() {
 
   const openForm = useCallback(() => setFormVisible(true), []);
   const closeForm = useCallback(() => setFormVisible(false), []);
-
-  // Memoize les fonctions de date
-  const { isToday, isFuture } = useMemo(() => ({
-    isToday: (date: Date): boolean => {
-      const today = new Date();
-      return (
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
-      );
-    },
-    isFuture: (date: Date): boolean => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const compareDate = new Date(date);
-      compareDate.setHours(0, 0, 0, 0);
-      return compareDate > today;
-    }
-  }), []);
 
   // Memoize les clients catégorisés
   const { todayClients, futureClients, pastClients, filteredClients } = useMemo(() => {
