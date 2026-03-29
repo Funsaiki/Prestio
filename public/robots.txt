@@ -5,4 +5,4 @@ Disallow: /settings
 Disallow: /admin
 Disallow: /superadmin
 
-Sitemap: https://prestio.vercel.app/sitemap_index.xml
+Sitemap: https://prestio.vercel.app/sitemap.xml
