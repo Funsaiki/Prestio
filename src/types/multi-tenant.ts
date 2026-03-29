@@ -27,6 +27,7 @@ export interface Salon {
   subscriptionEndsAt: Date | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
+  cancelAtPeriodEnd?: boolean;
 }
 
 // ===== User Profile =====

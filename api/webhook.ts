@@ -1,22 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { db } from './_utils/firebase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-// Initialize Firebase Admin
-if (getApps().length === 0) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
-}
-
-const db = getFirestore();
 
 export const config = {
   api: {
