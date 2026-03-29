@@ -29,7 +29,7 @@ export function MentionsLegales() {
               <p><strong>Prestio</strong></p>
               <p>Micro-entreprise</p>
               <p>SIRET : En cours d'immatriculation</p>
-              <p>Email : contact@prestio.app</p>
+              <p>Email : prestio.app@gmail.com</p>
               <p>Directeur de la publication : Johnny Hu</p>
             </div>
           </section>

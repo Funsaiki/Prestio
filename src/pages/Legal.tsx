@@ -98,28 +98,45 @@ export function Legal() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">8. Modification des CGU</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">8. Droit de rétractation</h2>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Conformément à l'article L221-28 du Code de la consommation, l'utilisateur reconnaît et accepte que l'exécution du Service commence dès la validation du paiement de l'abonnement et la création de son espace. En conséquence, l'utilisateur renonce expressément à son droit de rétractation de 14 jours.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              L'utilisateur conserve néanmoins la possibilité d'annuler son abonnement à tout moment depuis les paramètres de son compte. L'annulation prend effet à la fin de la période de facturation en cours, sans remboursement au prorata.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">9. Modification des CGU</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
               Prestio se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés de toute modification par email ou notification dans l'application. La poursuite de l'utilisation du Service après modification vaut acceptation des nouvelles CGU.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">9. Résiliation</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">10. Résiliation</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
               L'utilisateur peut résilier son compte à tout moment. Prestio se réserve le droit de suspendre ou supprimer un compte en cas de violation des présentes CGU, sans préavis ni indemnité.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">10. Droit applicable</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">11. Droit applicable</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
               Les présentes CGU sont soumises au droit français. Tout litige relatif à l'utilisation du Service sera soumis à la compétence des tribunaux français.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">11. Contact</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">12. Médiation</h2>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Conformément aux articles L611-1 et suivants du Code de la consommation, en cas de litige non résolu, l'utilisateur peut recourir gratuitement à un médiateur de la consommation. Les coordonnées du médiateur seront communiquées sur demande à prestio.app@gmail.com.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">13. Contact</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
               Pour toute question relative aux présentes CGU ou au Service, vous pouvez nous contacter par email à l'adresse indiquée dans l'application.
             </p>

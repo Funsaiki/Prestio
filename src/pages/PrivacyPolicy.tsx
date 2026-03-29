@@ -26,7 +26,7 @@ export function PrivacyPolicy() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">1. Responsable du traitement</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Le responsable du traitement des données personnelles est Prestio, micro-entreprise, joignable par email à l'adresse contact@prestio.app.
+              Le responsable du traitement des données personnelles est Prestio, micro-entreprise, joignable par email à l'adresse prestio.app@gmail.com.
             </p>
           </section>
 
@@ -137,7 +137,7 @@ export function PrivacyPolicy() {
               <li><strong>Droit à la limitation</strong> : demander la limitation du traitement</li>
             </ul>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Pour exercer ces droits, contactez-nous à contact@prestio.app. Nous répondrons dans un délai de 30 jours.
+              Pour exercer ces droits, contactez-nous à prestio.app@gmail.com. Nous répondrons dans un délai de 30 jours.
             </p>
           </section>
 
@@ -165,7 +165,7 @@ export function PrivacyPolicy() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">11. Contact</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Pour toute question relative à cette politique de confidentialité, contactez-nous à contact@prestio.app.
+              Pour toute question relative à cette politique de confidentialité, contactez-nous à prestio.app@gmail.com.
             </p>
           </section>
         </div>
