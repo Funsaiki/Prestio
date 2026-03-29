@@ -7,6 +7,7 @@ import { fr } from 'date-fns/locale';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
 import { useAuth } from '../contexts/AuthContext';
+import { Select } from '../components/Select';
 import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
 
 registerLocale('fr', fr);
@@ -303,17 +304,16 @@ export function Statistics() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-medium text-gray-900 dark:text-white">Répartition</h3>
                   {selectFields.length > 1 ? (
-                    <select
-                      value={selectedFieldIndex}
-                      onChange={(e) => setSelectedFieldIndex(Number(e.target.value))}
-                      className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-none focus:ring-2 focus:ring-gold cursor-pointer max-w-[200px]"
-                    >
-                      {selectFields.map((field, index) => (
-                        <option key={field.id} value={index}>
-                          {field.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="w-48">
+                      <Select
+                        options={selectFields.map((field, index) => ({
+                          value: String(index),
+                          label: field.label,
+                        }))}
+                        value={String(selectedFieldIndex)}
+                        onChange={(v) => setSelectedFieldIndex(Number(v))}
+                      />
+                    </div>
                   ) : (
                     <span className="text-sm text-gray-500 dark:text-gray-400">{selectFields[0].label}</span>
                   )}
