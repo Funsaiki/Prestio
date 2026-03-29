@@ -2,8 +2,10 @@ import { useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
+import { useAuth } from '../contexts/AuthContext';
 import { ClientForm } from '../components/ClientForm';
 import { Modal } from '../components/Modal';
+import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
 import { isToday, isFuture } from '../utils/date';
 import type { Client } from '../types';
 
@@ -12,6 +14,13 @@ type ClientWithPrestation = Client & { lastPrestationDate: Date | null };
 export function ClientList() {
   const { clients, loading, addClient } = useClients();
   const { prestations } = usePrestations();
+  const { salonConfig, canManageSettings } = useAuth();
+
+  const hasCustomFields = useMemo(() => {
+    const fields = salonConfig?.prestationFields ?? DEFAULT_SALON_CONFIG.prestationFields;
+    return fields.some(f => f.id !== 'mode_paiement');
+  }, [salonConfig?.prestationFields]);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -191,6 +200,36 @@ export function ClientList() {
           className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 transition-all duration-200"
         />
       </div>
+
+      {/* Bannière configuration prestations */}
+      {canManageSettings && !hasCustomFields && !dismissedBanner && (
+        <div className="mb-4 flex-shrink-0 p-4 bg-gold/10 border border-gold/30 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Configurez vos prestations</strong> pour adapter l'application à votre activité.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link
+              to="/settings"
+              className="px-3 py-1.5 bg-gold text-white rounded-lg text-sm font-medium hover:bg-gold-light transition-colors cursor-pointer"
+            >
+              Configurer
+            </Link>
+            <button
+              onClick={() => setDismissedBanner(true)}
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       <Modal
         isOpen={formVisible}

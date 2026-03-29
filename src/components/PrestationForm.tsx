@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -24,13 +25,17 @@ const inputClass = "w-full px-3 py-2.5 border border-gray-200 dark:border-gray-6
 const labelClass = "block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5";
 
 export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubmittingChange }: PrestationFormProps) {
-  const { salonConfig } = useAuth();
+  const { salonConfig, canManageSettings } = useAuth();
 
   // Champs dynamiques depuis salonConfig
   const prestationFields = useMemo(() => {
     const fields = salonConfig?.prestationFields ?? DEFAULT_SALON_CONFIG.prestationFields;
     return [...fields].sort((a, b) => a.order - b.order);
   }, [salonConfig?.prestationFields]);
+
+  const hasCustomFields = useMemo(() => {
+    return prestationFields.some(f => f.id !== 'mode_paiement');
+  }, [prestationFields]);
 
   // Trouver le champ avec defaultPrices pour l'auto-remplissage
   const fieldWithDefaultPrices = useMemo(() => {
@@ -126,6 +131,18 @@ export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubm
           required
         />
       </div>
+
+      {/* Avertissement si pas de champs personnalisés */}
+      {!hasCustomFields && canManageSettings && (
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm">
+          <p className="text-amber-700 dark:text-amber-400">
+            Vous n'avez pas encore configuré vos champs de prestation.{' '}
+            <Link to="/settings" className="text-gold hover:underline font-medium">
+              Configurer maintenant
+            </Link>
+          </p>
+        </div>
+      )}
 
       {/* Champs dynamiques */}
       {prestationFields.map(field => (
