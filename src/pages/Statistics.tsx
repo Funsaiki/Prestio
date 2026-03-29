@@ -302,25 +302,19 @@ export function Statistics() {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-medium text-gray-900 dark:text-white">Répartition</h3>
-                  {selectFields.length > 1 && (
-                    <div className="flex gap-1">
+                  {selectFields.length > 1 ? (
+                    <select
+                      value={selectedFieldIndex}
+                      onChange={(e) => setSelectedFieldIndex(Number(e.target.value))}
+                      className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-none focus:ring-2 focus:ring-gold cursor-pointer max-w-[200px]"
+                    >
                       {selectFields.map((field, index) => (
-                        <button
-                          key={field.id}
-                          type="button"
-                          onClick={() => setSelectedFieldIndex(index)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                            selectedFieldIndex === index
-                              ? 'bg-gold text-white'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                          }`}
-                        >
+                        <option key={field.id} value={index}>
                           {field.label}
-                        </button>
+                        </option>
                       ))}
-                    </div>
-                  )}
-                  {selectFields.length === 1 && (
+                    </select>
+                  ) : (
                     <span className="text-sm text-gray-500 dark:text-gray-400">{selectFields[0].label}</span>
                   )}
                 </div>
