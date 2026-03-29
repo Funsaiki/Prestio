@@ -29,19 +29,14 @@ export function Statistics() {
     return salonConfig?.prestationFields ?? DEFAULT_SALON_CONFIG.prestationFields;
   }, [salonConfig?.prestationFields]);
 
-  // Trouver le premier champ select (utilisé pour la répartition)
-  const mainSelectField = useMemo(() => {
-    return prestationFields.find(f => f.type === 'select');
+  // Tous les champs select (pour la répartition dynamique)
+  const selectFields = useMemo(() => {
+    return prestationFields.filter(f => f.type === 'select' && f.options && f.options.length > 0);
   }, [prestationFields]);
 
-  // Trouver le champ "mode de paiement" s'il existe
-  const paymentField = useMemo(() => {
-    return prestationFields.find(f =>
-      f.name === 'mode_paiement' ||
-      f.name.toLowerCase().includes('paiement') ||
-      f.label.toLowerCase().includes('paiement')
-    );
-  }, [prestationFields]);
+  const [selectedFieldIndex, setSelectedFieldIndex] = useState(0);
+
+  const activeSelectField = selectFields[selectedFieldIndex] || null;
 
   const getPresetDates = (preset: FilterPreset): { start: Date | null; end: Date | null } => {
     const now = new Date();
@@ -97,14 +92,14 @@ export function Statistics() {
     // CA sur la période
     const totalRevenue = filteredPrestations.reduce((sum, p) => sum + p.prix, 0);
 
-    // Répartition par le premier champ select (type de pose ou équivalent)
-    let typeDistribution: { name: string; value: number; percentage: number }[] = [];
+    // Répartition par le champ select actif
+    let fieldDistribution: { name: string; value: number; percentage: number }[] = [];
 
-    if (mainSelectField && mainSelectField.options) {
-      const knownValues = mainSelectField.options.map(opt => opt.value);
+    if (activeSelectField && activeSelectField.options) {
+      const knownValues = activeSelectField.options.map(opt => opt.value);
 
-      typeDistribution = mainSelectField.options.map(opt => {
-        const count = filteredPrestations.filter(p => p.values[mainSelectField.name] === opt.value).length;
+      fieldDistribution = activeSelectField.options.map(opt => {
+        const count = filteredPrestations.filter(p => p.values[activeSelectField.name] === opt.value).length;
         return {
           name: opt.label,
           value: count,
@@ -112,43 +107,19 @@ export function Statistics() {
         };
       }).filter(t => t.value > 0);
 
-      // Ajouter catégorie "Autre" pour les prestations sans valeur ou valeur inconnue
       const otherCount = filteredPrestations.filter(p => {
-        const value = p.values[mainSelectField.name];
+        const value = p.values[activeSelectField.name];
         return !value || !knownValues.includes(value as string);
       }).length;
 
       if (otherCount > 0) {
-        typeDistribution.push({
+        fieldDistribution.push({
           name: 'Autre',
           value: otherCount,
           percentage: filteredPrestations.length > 0 ? Math.round((otherCount / filteredPrestations.length) * 100) : 0,
         });
       }
     }
-
-    // Répartition modes de paiement
-    const paymentMethods: Record<string, number> = {};
-    filteredPrestations.forEach(p => {
-      const paymentValue = paymentField ? p.values[paymentField.name] : null;
-      let method = 'Non spécifié';
-
-      if (paymentValue && paymentField?.options) {
-        const option = paymentField.options.find(opt => opt.value === paymentValue);
-        method = option?.label || String(paymentValue);
-      } else if (paymentValue) {
-        method = String(paymentValue);
-      }
-
-      paymentMethods[method] = (paymentMethods[method] || 0) + 1;
-    });
-    const paymentDistribution = Object.entries(paymentMethods)
-      .map(([name, value]) => ({
-        name,
-        value,
-        percentage: filteredPrestations.length > 0 ? Math.round((value / filteredPrestations.length) * 100) : 0,
-      }))
-      .sort((a, b) => b.value - a.value);
 
     // Top clients
     const clientPrestationCount: Record<string, { count: number; revenue: number; clientId: string }> = {};
@@ -206,14 +177,12 @@ export function Statistics() {
       totalClients: clients.length,
       totalPrestations: filteredPrestations.length,
       totalRevenue,
-      typeDistribution,
-      paymentDistribution,
+      fieldDistribution,
       topClients,
       clientsToFollowUp,
       revenueByMonth,
-      mainSelectFieldLabel: mainSelectField?.label || 'Type',
     };
-  }, [clients, prestations, filteredPrestations, mainSelectField, paymentField]);
+  }, [clients, prestations, filteredPrestations, activeSelectField]);
 
   if (loadingClients || loadingPrestations) {
     return (
@@ -327,45 +296,77 @@ export function Statistics() {
             </ResponsiveContainer>
           </div>
 
-          {/* Répartition par le champ principal */}
+          {/* Répartition dynamique par champ select */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.25s' }}>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-4">Répartition par {stats.mainSelectFieldLabel.toLowerCase()}</h3>
-            {stats.typeDistribution.length > 0 ? (
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="50%" height={150}>
-                  <PieChart>
-                    <Pie
-                      data={stats.typeDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={60}
-                      dataKey="value"
-                    >
-                      {stats.typeDistribution.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            {selectFields.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white">Répartition</h3>
+                  {selectFields.length > 1 && (
+                    <div className="flex gap-1">
+                      {selectFields.map((field, index) => (
+                        <button
+                          key={field.id}
+                          type="button"
+                          onClick={() => setSelectedFieldIndex(index)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                            selectedFieldIndex === index
+                              ? 'bg-gold text-white'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {field.label}
+                        </button>
                       ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {stats.typeDistribution.map((item, index) => (
-                    <div key={item.name} className="flex items-center gap-2 text-sm">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                      <span className="text-gray-600 dark:text-gray-300 flex-1">{item.name}</span>
-                      <span className="text-gray-900 dark:text-white font-medium">{item.percentage}%</span>
                     </div>
-                  ))}
+                  )}
+                  {selectFields.length === 1 && (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{selectFields[0].label}</span>
+                  )}
                 </div>
-              </div>
+                {stats.fieldDistribution.length > 0 ? (
+                  <div className="flex items-center gap-4">
+                    <ResponsiveContainer width="50%" height={150}>
+                      <PieChart>
+                        <Pie
+                          data={stats.fieldDistribution}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={60}
+                          dataKey="value"
+                        >
+                          {stats.fieldDistribution.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex-1 space-y-2">
+                      {stats.fieldDistribution.map((item, index) => (
+                        <div key={item.name} className="flex items-center gap-2 text-sm">
+                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                          <span className="text-gray-600 dark:text-gray-300 flex-1 truncate">{item.name}</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{item.percentage}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune donnée</p>
+                )}
+              </>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune donnée</p>
+              <div className="text-center py-8">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">Répartition</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Ajoutez des champs de type "Liste déroulante" dans les paramètres pour voir la répartition ici</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Listes */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Top clients */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.3s' }}>
             <h3 className="font-medium text-gray-900 dark:text-white mb-3">Top clients</h3>
@@ -388,33 +389,8 @@ export function Statistics() {
             )}
           </div>
 
-          {/* Modes de paiement */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.35s' }}>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-3">Modes de paiement</h3>
-            {stats.paymentDistribution.length > 0 ? (
-              <ul className="space-y-2">
-                {stats.paymentDistribution.map((payment, index) => (
-                  <li key={index} className="text-sm">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-700 dark:text-gray-300">{payment.name}</span>
-                      <span className="text-gray-500 dark:text-gray-400">{payment.percentage}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${payment.percentage}%`, backgroundColor: COLORS[index % COLORS.length] }}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Aucune donnée</p>
-            )}
-          </div>
-
           {/* Clients à relancer */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.4s' }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.35s' }}>
             <h3 className="font-medium text-gray-900 dark:text-white mb-3">Clients à relancer</h3>
             {stats.clientsToFollowUp.length > 0 ? (
               <ul className="space-y-2">
