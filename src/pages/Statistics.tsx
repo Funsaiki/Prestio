@@ -7,6 +7,7 @@ import { fr } from 'date-fns/locale';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
 import { useAuth } from '../contexts/AuthContext';
+import { Select } from '../components/Select';
 import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
 
 registerLocale('fr', fr);
@@ -302,25 +303,18 @@ export function Statistics() {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-medium text-gray-900 dark:text-white">Répartition</h3>
-                  {selectFields.length > 1 && (
-                    <div className="flex gap-1">
-                      {selectFields.map((field, index) => (
-                        <button
-                          key={field.id}
-                          type="button"
-                          onClick={() => setSelectedFieldIndex(index)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                            selectedFieldIndex === index
-                              ? 'bg-gold text-white'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                          }`}
-                        >
-                          {field.label}
-                        </button>
-                      ))}
+                  {selectFields.length > 1 ? (
+                    <div className="w-48">
+                      <Select
+                        options={selectFields.map((field, index) => ({
+                          value: String(index),
+                          label: field.label,
+                        }))}
+                        value={String(selectedFieldIndex)}
+                        onChange={(v) => setSelectedFieldIndex(Number(v))}
+                      />
                     </div>
-                  )}
-                  {selectFields.length === 1 && (
+                  ) : (
                     <span className="text-sm text-gray-500 dark:text-gray-400">{selectFields[0].label}</span>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, doc, updateDoc, where, writeBatch, setDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, updateDoc, where, writeBatch, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Salon } from '../types/multi-tenant';
@@ -65,6 +65,10 @@ export function SuperAdmin() {
   const [unverifiedUsers, setUnverifiedUsers] = useState<UnverifiedUser[]>([]);
   const [loadingUnverified, setLoadingUnverified] = useState(false);
   const [verifyingUser, setVerifyingUser] = useState<string | null>(null);
+
+  // Delete salon state
+  const [deletingSalonId, setDeletingSalonId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Vérification super admin
   if (!firebaseUser || !isSuperAdmin) {
@@ -131,6 +135,64 @@ export function SuperAdmin() {
 
   const handleSelectSalon = async (salonId: string) => {
     await switchSalon(salonId);
+  };
+
+  const handleDeleteSalon = async (salonId: string) => {
+    setDeletingSalonId(salonId);
+    try {
+      // Delete all clients of this salon
+      const clientsSnapshot = await getDocs(
+        query(collection(db, 'clients'), where('salonId', '==', salonId))
+      );
+      for (const clientDoc of clientsSnapshot.docs) {
+        // Delete all prestations of this client
+        const prestationsSnapshot = await getDocs(
+          query(collection(db, 'prestations'), where('client_id', '==', clientDoc.id))
+        );
+        const batch = writeBatch(db);
+        prestationsSnapshot.docs.forEach((prestDoc) => batch.delete(prestDoc.ref));
+        if (prestationsSnapshot.docs.length > 0) await batch.commit();
+
+        await deleteDoc(clientDoc.ref);
+      }
+
+      // Delete remaining prestations with this salonId
+      const remainingPrestations = await getDocs(
+        query(collection(db, 'prestations'), where('salonId', '==', salonId))
+      );
+      if (remainingPrestations.docs.length > 0) {
+        const batch = writeBatch(db);
+        remainingPrestations.docs.forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+      }
+
+      // Delete salon config
+      await deleteDoc(doc(db, 'salonConfigs', salonId)).catch(() => {});
+
+      // Unlink users from this salon
+      const usersSnapshot = await getDocs(
+        query(collection(db, 'users'), where('salonId', '==', salonId))
+      );
+      for (const userDoc of usersSnapshot.docs) {
+        await updateDoc(userDoc.ref, { salonId: null });
+      }
+
+      // Delete the salon
+      await deleteDoc(doc(db, 'salons', salonId));
+
+      // If we were viewing this salon, switch away
+      if (currentSalon?.id === salonId) {
+        await switchSalon(null);
+      }
+
+      setDeleteConfirmId(null);
+      await loadSalons();
+    } catch (error) {
+      console.error('Error deleting salon:', error);
+      alert('Erreur lors de la suppression : ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
+    } finally {
+      setDeletingSalonId(null);
+    }
   };
 
   // Load clients from source salon
@@ -865,17 +927,46 @@ export function SuperAdmin() {
                       {salon.createdAt.toLocaleDateString('fr-FR')}
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <button
-                        onClick={() => handleSelectSalon(salon.id)}
-                        disabled={currentSalon?.id === salon.id}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-                          currentSalon?.id === salon.id
-                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                            : 'bg-gold/10 text-gold hover:bg-gold/20'
-                        }`}
-                      >
-                        {currentSalon?.id === salon.id ? 'Sélectionné' : 'Accéder'}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleSelectSalon(salon.id)}
+                          disabled={currentSalon?.id === salon.id}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+                            currentSalon?.id === salon.id
+                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                              : 'bg-gold/10 text-gold hover:bg-gold/20'
+                          }`}
+                        >
+                          {currentSalon?.id === salon.id ? 'Sélectionné' : 'Accéder'}
+                        </button>
+                        {deleteConfirmId === salon.id ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleDeleteSalon(salon.id)}
+                              disabled={deletingSalonId === salon.id}
+                              className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              {deletingSalonId === salon.id ? 'Suppression...' : 'Confirmer'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(salon.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                            title="Supprimer l'établissement"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -60,6 +60,9 @@ export function Select({ options, value, onChange, placeholder = 'Sélectionner.
       padding: '0.5rem 0.75rem',
       cursor: 'pointer',
       transition: 'all 0.15s',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
       '&:active': {
         backgroundColor: state.isSelected ? 'var(--color-gold)' : 'rgba(201, 168, 108, 0.25)',
       },
@@ -67,6 +70,9 @@ export function Select({ options, value, onChange, placeholder = 'Sélectionner.
     singleValue: (base) => ({
       ...base,
       color: 'var(--select-text, #1f2937)',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
     }),
     placeholder: (base) => ({
       ...base,
@@ -97,6 +103,10 @@ export function Select({ options, value, onChange, placeholder = 'Sélectionner.
       required={required}
       menuPortalTarget={document.body}
       menuPosition="fixed"
+      getOptionLabel={(option) => option.label}
+      formatOptionLabel={(option) => (
+        <span title={option.label}>{option.label}</span>
+      )}
       classNames={{
         control: () => 'dark:!bg-gray-700 dark:!border-gray-600',
         menu: () => 'dark:!bg-gray-700 dark:!border-gray-600',
