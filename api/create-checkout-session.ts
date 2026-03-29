@@ -1,12 +1,29 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
+import { verifyAuth } from './_utils/firebase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+
+function isAllowedReturnUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (ALLOWED_ORIGINS.length > 0) {
+      return ALLOWED_ORIGINS.includes(parsed.origin);
+    }
+    return parsed.protocol === 'https:' || parsed.hostname === 'localhost';
+  } catch {
+    return false;
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const uid = await verifyAuth(req, res);
+  if (!uid) return;
 
   try {
     const { salonId, salonName, customerEmail, returnUrl } = req.body;
@@ -15,7 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Check if customer already exists
+    if (!isAllowedReturnUrl(returnUrl)) {
+      return res.status(400).json({ error: 'Invalid return URL' });
+    }
+
     const existingCustomers = await stripe.customers.list({
       email: customerEmail,
       limit: 1,
@@ -55,7 +75,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: 'Failed to create checkout session' });
   }
 }

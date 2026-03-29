@@ -35,7 +35,7 @@ interface SalonWithStats extends Salon {
 }
 
 export function SuperAdmin() {
-  const { firebaseUser, isSuperAdmin, switchSalon, currentSalon } = useAuth();
+  const { isSuperAdmin, switchSalon, currentSalon } = useAuth();
   const [salons, setSalons] = useState<SalonWithStats[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,26 +70,39 @@ export function SuperAdmin() {
   const [deletingSalonId, setDeletingSalonId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  // Vérification super admin
-  if (!firebaseUser || !isSuperAdmin) {
+  useEffect(() => {
+    if (isSuperAdmin) loadSalons();
+  }, [isSuperAdmin]);
+
+  // Guard after hooks
+  if (!isSuperAdmin) {
     return <Navigate to="/" replace />;
   }
-
-  useEffect(() => {
-    loadSalons();
-  }, []);
 
   const loadSalons = async () => {
     setLoading(true);
     try {
-      const salonsQuery = query(collection(db, 'salons'), orderBy('createdAt', 'desc'));
-      const salonsSnapshot = await getDocs(salonsQuery);
+      const [salonsSnapshot, clientsSnapshot, prestationsSnapshot] = await Promise.all([
+        getDocs(query(collection(db, 'salons'), orderBy('createdAt', 'desc'))),
+        getDocs(collection(db, 'clients')),
+        getDocs(collection(db, 'prestations')),
+      ]);
 
-      const salonsData: SalonWithStats[] = [];
+      // Count per salon in one pass
+      const clientCounts: Record<string, number> = {};
+      const prestationCounts: Record<string, number> = {};
+      clientsSnapshot.docs.forEach((d) => {
+        const sid = d.data().salonId;
+        if (sid) clientCounts[sid] = (clientCounts[sid] || 0) + 1;
+      });
+      prestationsSnapshot.docs.forEach((d) => {
+        const sid = d.data().salonId;
+        if (sid) prestationCounts[sid] = (prestationCounts[sid] || 0) + 1;
+      });
 
-      for (const doc of salonsSnapshot.docs) {
+      const salonsData: SalonWithStats[] = salonsSnapshot.docs.map((doc) => {
         const data = doc.data();
-        const salon: SalonWithStats = {
+        return {
           id: doc.id,
           name: data.name || '',
           address: data.address || '',
@@ -104,26 +117,10 @@ export function SuperAdmin() {
           subscriptionEndsAt: data.subscriptionEndsAt?.toDate() || null,
           stripeCustomerId: data.stripeCustomerId || null,
           stripeSubscriptionId: data.stripeSubscriptionId || null,
+          clientCount: clientCounts[doc.id] || 0,
+          prestationCount: prestationCounts[doc.id] || 0,
         };
-
-        // Count clients for this salon
-        const clientsSnapshot = await getDocs(
-          query(collection(db, 'clients'))
-        );
-        salon.clientCount = clientsSnapshot.docs.filter(
-          (d) => d.data().salonId === doc.id
-        ).length;
-
-        // Count prestations for this salon
-        const prestationsSnapshot = await getDocs(
-          query(collection(db, 'prestations'))
-        );
-        salon.prestationCount = prestationsSnapshot.docs.filter(
-          (d) => d.data().salonId === doc.id
-        ).length;
-
-        salonsData.push(salon);
-      }
+      });
 
       setSalons(salonsData);
     } catch (error) {

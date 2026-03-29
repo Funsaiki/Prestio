@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { authenticatedFetch } from '../utils/api';
 import { SUBSCRIPTION_PRICE } from '../types/multi-tenant';
 
 export function Subscription() {
@@ -14,11 +15,8 @@ export function Subscription() {
     setError('');
 
     try {
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await authenticatedFetch('/api/create-checkout-session', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           salonId: currentSalon.id,
           salonName: currentSalon.name,

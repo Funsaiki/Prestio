@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { authenticatedFetch } from '../../utils/api';
 import type { Salon } from '../../types/multi-tenant';
 import { SUBSCRIPTION_PRICE } from '../../types/multi-tenant';
 
@@ -16,7 +17,7 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
 
   const isActive = salon.subscriptionStatus === 'active';
   const isPending = salon.subscriptionStatus === 'pending';
-  const isCancelPending = isActive && (salon as unknown as Record<string, unknown>).cancelAtPeriodEnd === true;
+  const isCancelPending = isActive && salon.cancelAtPeriodEnd === true;
 
   const getStatusLabel = () => {
     switch (salon.subscriptionStatus) {
@@ -48,9 +49,8 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
     setMessage(null);
 
     try {
-      const response = await fetch('/api/cancel-subscription', {
+      const response = await authenticatedFetch('/api/cancel-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           stripeSubscriptionId: salon.stripeSubscriptionId,
           salonId: salon.id,
@@ -122,9 +122,8 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
             onClick={async () => {
               setLoadingPortal(true);
               try {
-                const response = await fetch('/api/create-portal-session', {
+                const response = await authenticatedFetch('/api/create-portal-session', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     stripeCustomerId: salon.stripeCustomerId,
                     returnUrl: window.location.href,

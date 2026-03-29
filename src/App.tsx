@@ -56,6 +56,7 @@ function PublicRoutes() {
 
 function AppContent() {
   const { firebaseUser, currentSalon, loading, logout, isSuperAdmin, isViewingOtherSalon, switchSalon, needsEmailVerification, canManageSettings } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -71,8 +72,6 @@ function AppContent() {
       </div>
     );
   }
-
-  const location = useLocation();
 
   if (!firebaseUser) {
     // Redirect to / when logged out from a private route

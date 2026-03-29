@@ -54,14 +54,20 @@ service cloud.firestore {
       // Lecture: l'utilisateur peut lire son propre profil, super_admin peut tout lire
       allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin());
 
-      // Création: uniquement pour l'utilisateur lui-même (lors de l'inscription)
-      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Création: uniquement pour l'utilisateur lui-même, rôle forcé à 'owner'
+      allow create: if isAuthenticated() && request.auth.uid == userId
+        && request.resource.data.role in ['owner', 'employee']
+        && request.resource.data.emailVerified == false;
 
-      // Mise à jour: l'utilisateur peut modifier son profil,
+      // Mise à jour: l'utilisateur peut modifier son profil (sauf rôle),
       // super_admin peut modifier n'importe quel profil
       // owner peut modifier les profils des employés de son salon
       allow update: if isAuthenticated() && (
-        request.auth.uid == userId ||
+        (
+          request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+          && (request.resource.data.salonId == resource.data.salonId || resource.data.salonId == null)
+        ) ||
         isSuperAdmin() ||
         (isOwner() && resource.data.salonId == getUserProfile().salonId && resource.data.role == 'employee')
       );
