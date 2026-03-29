@@ -179,9 +179,15 @@ export function Landing({ onLogin, onRegister }: LandingProps) {
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <span className="font-elegant text-lg font-bold text-gold">Prestio</span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-end">
             <Link to="/cgu" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gold transition-colors">
               CGU
+            </Link>
+            <Link to="/confidentialite" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gold transition-colors">
+              Confidentialité
+            </Link>
+            <Link to="/mentions-legales" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gold transition-colors">
+              Mentions légales
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               &copy; {new Date().getFullYear()} Prestio. Tous droits réservés.

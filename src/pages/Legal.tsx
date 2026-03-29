@@ -62,6 +62,9 @@ export function Legal() {
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
               L'abonnement est renouvelé automatiquement chaque mois. L'utilisateur peut annuler son abonnement à tout moment depuis les paramètres de son compte. L'annulation prend effet à la fin de la période de facturation en cours.
             </p>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Les prix sont indiqués en euros. TVA non applicable, article 293 B du Code Général des Impôts.
+            </p>
           </section>
 
           <section className="space-y-3">
@@ -73,7 +76,7 @@ export function Legal() {
               Les données des clients enregistrées par l'utilisateur dans l'application sont sous sa responsabilité. L'utilisateur s'engage à respecter la réglementation en vigueur concernant la collecte et le traitement des données personnelles de ses propres clients.
             </p>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              L'utilisateur peut demander la suppression de son compte et de ses données à tout moment en contactant le support.
+              L'utilisateur peut demander la suppression de son compte et de ses données à tout moment en contactant le support. Pour plus de détails, consultez notre <Link to="/confidentialite" className="text-gold hover:underline">Politique de Confidentialité</Link>.
             </p>
           </section>
 
