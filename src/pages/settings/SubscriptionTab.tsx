@@ -10,6 +10,7 @@ interface SubscriptionTabProps {
 export function SubscriptionTab({ salon }: SubscriptionTabProps) {
   const { refreshSalon } = useAuth();
   const [canceling, setCanceling] = useState(false);
+  const [loadingPortal, setLoadingPortal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -109,6 +110,57 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
           )}
         </div>
       </div>
+
+      {/* Payment Method */}
+      {salon.stripeCustomerId && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">Moyen de paiement</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Gérez votre carte bancaire et consultez vos factures via le portail sécurisé Stripe.
+          </p>
+          <button
+            onClick={async () => {
+              setLoadingPortal(true);
+              try {
+                const response = await fetch('/api/create-portal-session', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    stripeCustomerId: salon.stripeCustomerId,
+                    returnUrl: window.location.href,
+                  }),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                window.location.href = data.url;
+              } catch (error) {
+                setMessage({
+                  type: 'error',
+                  text: error instanceof Error ? error.message : 'Erreur lors de l\'ouverture du portail',
+                });
+              } finally {
+                setLoadingPortal(false);
+              }
+            }}
+            disabled={loadingPortal}
+            className="px-4 py-2 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 cursor-pointer text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+          >
+            {loadingPortal ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                Redirection...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Gérer mon moyen de paiement
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Cancel Section */}
       {isActive && salon.stripeSubscriptionId && !isCancelPending && (
