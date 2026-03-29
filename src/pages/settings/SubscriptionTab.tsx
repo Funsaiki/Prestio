@@ -15,6 +15,7 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
 
   const isActive = salon.subscriptionStatus === 'active';
   const isPending = salon.subscriptionStatus === 'pending';
+  const isCancelPending = isActive && (salon as unknown as Record<string, unknown>).cancelAtPeriodEnd === true;
 
   const getStatusLabel = () => {
     switch (salon.subscriptionStatus) {
@@ -51,6 +52,7 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           stripeSubscriptionId: salon.stripeSubscriptionId,
+          salonId: salon.id,
         }),
       });
 
@@ -97,14 +99,19 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
 
           {salon.subscriptionEndsAt && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {isActive ? 'Prochaine facturation' : 'Expire'} le {salon.subscriptionEndsAt.toLocaleDateString('fr-FR')}
+              {isCancelPending ? 'Actif jusqu\'au' : isActive ? 'Prochaine facturation le' : 'Expire le'} {salon.subscriptionEndsAt.toLocaleDateString('fr-FR')}
+            </p>
+          )}
+          {isCancelPending && (
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+              L'annulation est programmée. Votre accès reste actif jusqu'à la fin de la période en cours.
             </p>
           )}
         </div>
       </div>
 
       {/* Cancel Section */}
-      {isActive && salon.stripeSubscriptionId && (
+      {isActive && salon.stripeSubscriptionId && !isCancelPending && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">Annuler l'abonnement</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
