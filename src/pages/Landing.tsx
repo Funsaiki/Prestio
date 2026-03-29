@@ -6,9 +6,29 @@ interface LandingProps {
   onRegister: () => void;
 }
 
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Prestio',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  description: 'Outil tout-en-un pour gérer vos clients, suivre vos prestations et analyser votre activité professionnelle.',
+  offers: {
+    '@type': 'Offer',
+    price: '20',
+    priceCurrency: 'EUR',
+    priceValidUntil: '2027-12-31',
+    availability: 'https://schema.org/InStock',
+  },
+};
+
 export function Landing({ onLogin, onRegister }: LandingProps) {
   return (
     <div className="min-h-screen bg-cream dark:bg-gray-900 transition-colors duration-500">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-50 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
