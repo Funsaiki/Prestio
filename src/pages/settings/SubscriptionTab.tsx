@@ -164,7 +164,11 @@ export function SubscriptionTab({ salon }: SubscriptionTabProps) {
       {!isActive && !isPending && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Votre abonnement n'est plus actif. Contactez le support pour réactiver votre compte.
+            Votre abonnement n'est plus actif.
+            {salon.subscriptionEndsAt && (
+              <> Il a pris fin le {salon.subscriptionEndsAt.toLocaleDateString('fr-FR')}.</>
+            )}
+            {' '}Contactez le support pour réactiver votre compte.
           </p>
         </div>
       )}
