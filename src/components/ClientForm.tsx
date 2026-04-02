@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Client } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { CustomFieldInput } from './CustomFieldInput';
@@ -40,6 +41,7 @@ const isValidEmail = (email: string): boolean => {
 };
 
 export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmittingChange }: ClientFormProps) {
+  const { t } = useTranslation();
   const { salonConfig } = useAuth();
 
   // Champs personnalisés pour les clients
@@ -95,8 +97,8 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
 
     if (!phoneValid || !emailValid) {
       setErrors({
-        telephone: !phoneValid ? 'Format: 06 12 34 56 78' : undefined,
-        email: !emailValid ? 'Email invalide' : undefined,
+        telephone: !phoneValid ? t('clients.phoneFormat') : undefined,
+        email: !emailValid ? t('clients.emailInvalid') : undefined,
       });
       return;
     }
@@ -114,7 +116,7 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
       {/* Champs fixes */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Prénom *</label>
+          <label className={labelClass}>{t('clients.firstName')} *</label>
           <input
             type="text"
             required
@@ -124,7 +126,7 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
           />
         </div>
         <div>
-          <label className={labelClass}>Nom *</label>
+          <label className={labelClass}>{t('clients.lastName')} *</label>
           <input
             type="text"
             required
@@ -136,13 +138,13 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
       </div>
 
       <div>
-        <label className={labelClass}>Téléphone</label>
+        <label className={labelClass}>{t('clients.phone')}</label>
         <input
           type="tel"
           value={formData.telephone}
           onChange={(e) => handlePhoneChange(e.target.value)}
           className={errors.telephone ? inputErrorClass : inputClass}
-          placeholder="06 12 34 56 78"
+          placeholder={t('clients.phonePlaceholder')}
         />
         {errors.telephone && (
           <p className="mt-1 text-sm text-red-500">{errors.telephone}</p>
@@ -150,13 +152,13 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
       </div>
 
       <div>
-        <label className={labelClass}>Email</label>
+        <label className={labelClass}>{t('clients.email')}</label>
         <input
           type="email"
           value={formData.email}
           onChange={(e) => handleEmailChange(e.target.value)}
           className={errors.email ? inputErrorClass : inputClass}
-          placeholder="exemple@email.com"
+          placeholder={t('clients.emailPlaceholder')}
         />
         {errors.email && (
           <p className="mt-1 text-sm text-red-500">{errors.email}</p>
@@ -164,13 +166,13 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
       </div>
 
       <div>
-        <label className={labelClass}>Notes</label>
+        <label className={labelClass}>{t('clients.notes')}</label>
         <textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={3}
           className={inputClass}
-          placeholder="Informations complémentaires..."
+          placeholder={t('clients.notesPlaceholder')}
         />
       </div>
 
@@ -195,7 +197,7 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
             onClick={onCancel}
             className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
           >
-            Annuler
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -203,7 +205,7 @@ export function ClientForm({ initialData, onSubmit, onCancel, formId, onSubmitti
             className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
             style={{ backgroundColor: 'var(--color-gold)' }}
           >
-            {submitting ? 'Enregistrement...' : initialData ? 'Modifier' : 'Ajouter'}
+            {submitting ? t('common.saving') : initialData ? t('common.edit') : t('common.add')}
           </button>
         </div>
       )}

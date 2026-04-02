@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function ThemeToggle() {
+  const { t } = useTranslation();
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 cursor-pointer"
-      aria-label="Changer de thème"
+      aria-label={t('app.changeTheme')}
     >
       {dark ? (
         <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">

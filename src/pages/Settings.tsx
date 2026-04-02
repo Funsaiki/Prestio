@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,46 +12,38 @@ import { SubscriptionTab } from './settings/SubscriptionTab';
 
 type SettingsTab = 'info' | 'prestations' | 'clients' | 'subscription';
 
-const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
-  {
-    id: 'info',
-    label: 'Établissement',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-      </svg>
-    ),
-  },
-  {
-    id: 'prestations',
-    label: 'Prestations',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-    ),
-  },
-  {
-    id: 'clients',
-    label: 'Clients',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'subscription',
-    label: 'Abonnement',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-      </svg>
-    ),
-  },
-];
+const tabIcons: Record<SettingsTab, React.ReactNode> = {
+  info: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  ),
+  prestations: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+  ),
+  clients: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
+  subscription: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+  ),
+};
 
 export function Settings() {
+  const { t } = useTranslation();
+
+  const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'info', label: t('settings.establishment'), icon: tabIcons.info },
+    { id: 'prestations', label: t('settings.prestations'), icon: tabIcons.prestations },
+    { id: 'clients', label: t('settings.clients'), icon: tabIcons.clients },
+    { id: 'subscription', label: t('settings.subscription'), icon: tabIcons.subscription },
+  ];
   const { canManageSettings, currentSalon, salonConfig, refreshSalon } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('info');
   const [localConfig, setLocalConfig] = useState<SalonConfig | null>(null);
@@ -79,7 +72,7 @@ export function Settings() {
   if (!currentSalon) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Aucun établissement sélectionné</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('settings.noEstablishment')}</p>
       </div>
     );
   }
@@ -120,11 +113,11 @@ export function Settings() {
       await setDoc(configRef, cleanedConfig, { merge: true });
       await refreshSalon();
       setIsDirty(false);
-      setSaveMessage({ type: 'success', text: 'Paramètres enregistrés' });
+      setSaveMessage({ type: 'success', text: t('settings.saved') });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error('Error saving config:', error);
-      setSaveMessage({ type: 'error', text: 'Erreur lors de l\'enregistrement' });
+      setSaveMessage({ type: 'error', text: t('settings.saveError') });
     } finally {
       setSaving(false);
     }
@@ -152,7 +145,7 @@ export function Settings() {
             </svg>
           </Link>
           <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">
-            Paramètres
+            {t('settings.title')}
           </h1>
         </div>
 
@@ -168,7 +161,7 @@ export function Settings() {
               onClick={handleReset}
               className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer"
             >
-              Annuler
+              {t('settings.cancel')}
             </button>
           )}
           <button
@@ -179,10 +172,10 @@ export function Settings() {
             {saving ? (
               <>
                 <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                Enregistrement...
+                {t('settings.saving')}
               </>
             ) : (
-              'Enregistrer'
+              t('settings.save')
             )}
           </button>
         </div>
@@ -215,8 +208,8 @@ export function Settings() {
             )}
             {activeTab === 'prestations' && (
               <FieldsConfigTab
-                title="Champs des prestations"
-                description="Configurez les champs qui apparaissent dans le formulaire de prestation. Les champs Date et Prix sont toujours présents."
+                title={t('settings.prestationFieldsTitle')}
+                description={t('settings.prestationFieldsDesc')}
                 fields={localConfig.prestationFields}
                 onChange={(fields) => updateConfig({ prestationFields: fields })}
                 showDefaultPrices
@@ -224,8 +217,8 @@ export function Settings() {
             )}
             {activeTab === 'clients' && (
               <FieldsConfigTab
-                title="Champs des clients"
-                description="Ajoutez des champs personnalisés aux fiches clients. Les champs Nom, Prénom, Téléphone, Email et Notes sont toujours présents."
+                title={t('settings.clientFieldsTitle')}
+                description={t('settings.clientFieldsDesc')}
                 fields={localConfig.clientFields}
                 onChange={(fields) => updateConfig({ clientFields: fields })}
               />

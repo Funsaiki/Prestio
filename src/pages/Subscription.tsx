@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { authenticatedFetch } from '../utils/api';
 import { SUBSCRIPTION_PRICE } from '../types/multi-tenant';
 
 export function Subscription() {
   const { currentSalon, firebaseUser, logout } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,14 +30,14 @@ export function Subscription() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la création du paiement');
+        throw new Error(data.error || t('subscription.errorPayment'));
       }
 
       // Redirect to Stripe Checkout
       window.location.href = data.url;
     } catch (err) {
       console.error('Payment error:', err);
-      setError(err instanceof Error ? err.message : 'Erreur lors du paiement');
+      setError(err instanceof Error ? err.message : t('subscription.errorPayment'));
     } finally {
       setLoading(false);
     }
@@ -52,10 +54,10 @@ export function Subscription() {
               </svg>
             </div>
             <h2 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-cream">
-              Activez votre abonnement
+              {t('subscription.activateTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Finalisez votre inscription pour accéder à toutes les fonctionnalités
+              {t('subscription.activateSubtitle')}
             </p>
           </div>
 
@@ -74,7 +76,7 @@ export function Subscription() {
               )}
               <div>
                 <p className="font-medium text-gray-800 dark:text-white">{currentSalon.name}</p>
-                <p className="text-sm text-amber-600 dark:text-amber-400">En attente de paiement</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">{t('subscription.pendingPayment')}</p>
               </div>
             </div>
           </div>
@@ -83,12 +85,12 @@ export function Subscription() {
           <div className="p-6 border-2 border-gold rounded-xl bg-gold/5 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-white text-lg">Abonnement mensuel</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Accès complet et illimité</p>
+                <h3 className="font-semibold text-gray-800 dark:text-white text-lg">{t('subscription.monthly')}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscription.fullAccess')}</p>
               </div>
               <div className="text-right">
                 <span className="text-3xl font-bold text-gold">{SUBSCRIPTION_PRICE}€</span>
-                <p className="text-sm text-gray-500 dark:text-gray-400">/mois</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscription.perMonth')}</p>
               </div>
             </div>
 
@@ -97,25 +99,25 @@ export function Subscription() {
                 <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Gestion illimitée de clients
+                {t('subscription.unlimitedClients')}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                 <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Suivi complet des prestations
+                {t('subscription.fullTracking')}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                 <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Statistiques détaillées
+                {t('subscription.detailedStats')}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                 <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Support prioritaire
+                {t('subscription.prioritySupport')}
               </li>
             </ul>
           </div>
@@ -136,20 +138,20 @@ export function Subscription() {
             {loading ? (
               <>
                 <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
-                Redirection...
+                {t('subscription.redirect')}
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                Payer {SUBSCRIPTION_PRICE}€ / mois
+                {t('subscription.pay')} {SUBSCRIPTION_PRICE}€ {t('subscription.perMonth')}
               </>
             )}
           </button>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
-            Paiement sécurisé par Stripe. Annulation possible à tout moment.
+            {t('subscription.securePayment')}
           </p>
 
           <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -157,7 +159,7 @@ export function Subscription() {
               onClick={logout}
               className="w-full py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-sm cursor-pointer"
             >
-              Se déconnecter
+              {t('subscription.logout')}
             </button>
           </div>
         </div>

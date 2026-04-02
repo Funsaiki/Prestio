@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -25,6 +26,7 @@ const inputClass = "w-full px-3 py-2.5 border border-gray-200 dark:border-gray-6
 const labelClass = "block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5";
 
 export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubmittingChange }: PrestationFormProps) {
+  const { t } = useTranslation();
   const { salonConfig, canManageSettings } = useAuth();
 
   // Champs dynamiques depuis salonConfig
@@ -114,7 +116,7 @@ export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubm
     <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       {/* Date - Champ fixe */}
       <div>
-        <label className={labelClass}>Date et heure *</label>
+        <label className={labelClass}>{t('prestationForm.dateTime')} *</label>
         <DatePicker
           selected={formData.date}
           onChange={(date: Date | null) => setFormData({ ...formData, date: date || new Date() })}
@@ -136,9 +138,9 @@ export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubm
       {!hasCustomFields && canManageSettings && (
         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm">
           <p className="text-amber-700 dark:text-amber-400">
-            Vous n'avez pas encore configuré vos champs de prestation.{' '}
+            {t('prestationForm.configWarning')}{' '}
             <Link to="/settings" className="text-gold hover:underline font-medium">
-              Configurer maintenant
+              {t('prestationForm.configNow')}
             </Link>
           </p>
         </div>
@@ -156,7 +158,7 @@ export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubm
 
       {/* Prix - Champ fixe */}
       <div>
-        <label className={labelClass}>Prix (€) *</label>
+        <label className={labelClass}>{t('prestationForm.price')} (€) *</label>
         <input
           type="number"
           required
@@ -175,7 +177,7 @@ export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubm
             onClick={onCancel}
             className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
           >
-            Annuler
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -183,7 +185,7 @@ export function PrestationForm({ initialData, onSubmit, onCancel, formId, onSubm
             className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
             style={{ backgroundColor: 'var(--color-gold)' }}
           >
-            {submitting ? 'Enregistrement...' : initialData ? 'Modifier' : 'Ajouter'}
+            {submitting ? t('common.saving') : initialData ? t('common.edit') : t('common.add')}
           </button>
         </div>
       )}

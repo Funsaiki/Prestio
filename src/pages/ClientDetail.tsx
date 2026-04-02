@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useClients } from '../hooks/useClients';
@@ -14,6 +15,7 @@ import { isToday, isFuture } from '../utils/date';
 import type { Client, Prestation } from '../types';
 
 export function ClientDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { salonConfig } = useAuth();
@@ -160,7 +162,7 @@ export function ClientDetail() {
           <button
             onClick={() => openEditPrestation(prestation)}
             className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
-            title="Modifier"
+            title={t('common.edit')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -169,7 +171,7 @@ export function ClientDetail() {
           <button
             onClick={() => setPrestationToDelete(prestation.id)}
             className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
-            title="Supprimer"
+            title={t('common.delete')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -255,7 +257,7 @@ export function ClientDetail() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
+        <div className="text-gray-500 dark:text-gray-400 animate-pulse">{t('common.loading')}</div>
       </div>
     );
   }
@@ -263,9 +265,9 @@ export function ClientDetail() {
   if (!client) {
     return (
       <div className="text-center py-12 animate-fade-in">
-        <p className="text-gray-500 dark:text-gray-400 mb-4">Client non trouvé</p>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">{t('clientDetail.notFound')}</p>
         <Link to="/" className="text-gold hover:text-gold-light transition-colors duration-200">
-          Retour à la liste
+          {t('clientDetail.backToList')}
         </Link>
       </div>
     );
@@ -283,12 +285,12 @@ export function ClientDetail() {
         <svg className="w-5 h-5 mr-1 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Retour
+        {t('clientDetail.back')}
       </button>
 
       <Modal
         isOpen={editFormVisible}
-        title="Modifier le client"
+        title={t('clientDetail.editClient')}
         onClose={closeEditForm}
         footer={
           <div className="flex gap-3 justify-end">
@@ -297,7 +299,7 @@ export function ClientDetail() {
               onClick={closeEditForm}
               className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -306,7 +308,7 @@ export function ClientDetail() {
               className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
               style={{ backgroundColor: 'var(--color-gold)' }}
             >
-              {clientFormSubmitting ? 'Enregistrement...' : 'Modifier'}
+              {clientFormSubmitting ? t('common.saving') : t('common.edit')}
             </button>
           </div>
         }
@@ -330,7 +332,7 @@ export function ClientDetail() {
                 <button
                   onClick={openEditForm}
                   className="p-2 text-gray-500 hover:text-gold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
-                  title="Modifier"
+                  title={t('common.edit')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -339,7 +341,7 @@ export function ClientDetail() {
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
-                  title="Supprimer"
+                  title={t('common.delete')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -410,19 +412,19 @@ export function ClientDetail() {
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex-1 flex flex-col min-h-0">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
-          <h2 className="font-elegant text-xl font-medium text-gray-900 dark:text-white">Prestations</h2>
+          <h2 className="font-elegant text-xl font-medium text-gray-900 dark:text-white">{t('stats.prestations')}</h2>
           <button
             onClick={openPrestationForm}
             className="text-white px-4 py-2 text-sm rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             style={{ backgroundColor: 'var(--color-gold)' }}
           >
-            + Ajouter
+            + {t('common.add')}
           </button>
         </div>
 
         <Modal
           isOpen={prestationFormVisible}
-          title={prestationToEdit ? "Modifier la prestation" : "Nouvelle prestation"}
+          title={prestationToEdit ? t('clientDetail.editPrestation') : t('clientDetail.newPrestation')}
           onClose={closePrestationForm}
           footer={
             <div className="flex gap-3 justify-end">
@@ -431,7 +433,7 @@ export function ClientDetail() {
                 onClick={closePrestationForm}
                 className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -440,7 +442,7 @@ export function ClientDetail() {
                 className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
                 style={{ backgroundColor: 'var(--color-gold)' }}
               >
-                {prestationFormSubmitting ? 'Enregistrement...' : prestationToEdit ? 'Modifier' : 'Ajouter'}
+                {prestationFormSubmitting ? t('common.saving') : prestationToEdit ? t('common.edit') : t('common.add')}
               </button>
             </div>
           }
@@ -455,7 +457,7 @@ export function ClientDetail() {
         </Modal>
 
         {prestations.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune prestation enregistrée</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('clientDetail.noPrestations')}</p>
         ) : (
           <div className="overflow-y-auto flex-1">
             {/* Aujourd'hui */}
@@ -466,7 +468,7 @@ export function ClientDetail() {
                   onClick={() => toggleSection('today')}
                   className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-4 py-2 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200 rounded-t-lg"
                 >
-                  <span>Aujourd'hui ({todayPrestations.length})</span>
+                  <span>{t('clients.today')} ({todayPrestations.length})</span>
                   <svg
                     className={`w-4 h-4 transition-transform duration-300 ${expandedSections.today ? 'rotate-180' : ''}`}
                     fill="none"
@@ -492,7 +494,7 @@ export function ClientDetail() {
                   onClick={() => toggleSection('future')}
                   className="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-4 py-2 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200 rounded-t-lg"
                 >
-                  <span>À venir ({futurePrestations.length})</span>
+                  <span>{t('clients.upcoming')} ({futurePrestations.length})</span>
                   <svg
                     className={`w-4 h-4 transition-transform duration-300 ${expandedSections.future ? 'rotate-180' : ''}`}
                     fill="none"
@@ -518,7 +520,7 @@ export function ClientDetail() {
                   onClick={() => toggleSection('past')}
                   className="bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 px-4 py-2 font-medium text-sm uppercase tracking-wider w-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity duration-200 rounded-t-lg"
                 >
-                  <span>Passé ({pastPrestations.length})</span>
+                  <span>{t('clients.past')} ({pastPrestations.length})</span>
                   <svg
                     className={`w-4 h-4 transition-transform duration-300 ${expandedSections.past ? 'rotate-180' : ''}`}
                     fill="none"
@@ -541,20 +543,20 @@ export function ClientDetail() {
 
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="Supprimer le client"
-        message={`Êtes-vous sûr de vouloir supprimer ${client.prenom} ${client.nom} et toutes ses prestations ?`}
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        title={t('clientDetail.deleteClient')}
+        message={t('clientDetail.deleteClientConfirm')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />
 
       <ConfirmModal
         isOpen={prestationToDelete !== null}
-        title="Supprimer la prestation"
-        message="Êtes-vous sûr de vouloir supprimer cette prestation ?"
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        title={t('clientDetail.deletePrestation')}
+        message={t('clientDetail.deletePrestationConfirm')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         onConfirm={() => {
           if (prestationToDelete) {
             deletePrestation(prestationToDelete);

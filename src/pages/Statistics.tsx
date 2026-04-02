@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -21,6 +22,7 @@ const formatCurrency = (amount: number) => {
 type FilterPreset = 'thisMonth' | 'last3Months' | 'last6Months' | 'thisYear' | 'all' | 'custom';
 
 export function Statistics() {
+  const { t } = useTranslation();
   const { clients, loading: loadingClients } = useClients();
   const { prestations, loading: loadingPrestations } = usePrestations();
   const { salonConfig } = useAuth();
@@ -110,7 +112,7 @@ export function Statistics() {
           value: count,
           percentage: filteredPrestations.length > 0 ? Math.round((count / filteredPrestations.length) * 100) : 0,
         };
-      }).filter(t => t.value > 0);
+      }).filter(item => item.value > 0);
 
       const otherCount = filteredPrestations.filter(p => {
         const value = p.values[activeSelectField.name];
@@ -119,7 +121,7 @@ export function Statistics() {
 
       if (otherCount > 0) {
         fieldDistribution.push({
-          name: 'Autre',
+          name: t('stats.other'),
           value: otherCount,
           percentage: filteredPrestations.length > 0 ? Math.round((otherCount / filteredPrestations.length) * 100) : 0,
         });
@@ -187,12 +189,12 @@ export function Statistics() {
       clientsToFollowUp,
       revenueByMonth,
     };
-  }, [clients, prestations, filteredPrestations, activeSelectField]);
+  }, [clients, prestations, filteredPrestations, activeSelectField, t]);
 
   if (loadingClients || loadingPrestations) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
+        <div className="text-gray-500 dark:text-gray-400 animate-pulse">{t('common.loading')}</div>
       </div>
     );
   }
@@ -201,12 +203,12 @@ export function Statistics() {
   return (
     <div className="h-full flex flex-col animate-fade-in">
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
-        <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">Statistiques</h1>
+        <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">{t('stats.title')}</h1>
         <Link
           to="/"
           className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 cursor-pointer"
         >
-          Retour aux clients
+          {t('stats.backToClients')}
         </Link>
       </div>
 
@@ -214,15 +216,15 @@ export function Statistics() {
         {/* Filtre de période */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Période :</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t('stats.period')} :</span>
             <div className="flex flex-wrap gap-2">
               {[
-                { key: 'thisMonth', label: 'Ce mois' },
-                { key: 'last3Months', label: '3 mois' },
-                { key: 'last6Months', label: '6 mois' },
-                { key: 'thisYear', label: 'Cette année' },
-                { key: 'all', label: 'Tout' },
-                { key: 'custom', label: 'Personnalisé' },
+                { key: 'thisMonth', label: t('stats.thisMonth') },
+                { key: 'last3Months', label: t('stats.threeMonths') },
+                { key: 'last6Months', label: t('stats.sixMonths') },
+                { key: 'thisYear', label: t('stats.thisYear') },
+                { key: 'all', label: t('stats.all') },
+                { key: 'custom', label: t('stats.custom') },
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -250,7 +252,7 @@ export function Statistics() {
                   startDate={startDate}
                   endDate={endDate}
                   selectsRange
-                  placeholderText="Sélectionner une période"
+                  placeholderText={t('stats.selectPeriod')}
                   locale="fr"
                   dateFormat="dd/MM/yyyy"
                   portalId="root"
@@ -264,17 +266,17 @@ export function Statistics() {
         {/* Cartes principales */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Clients total</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{t('stats.totalClients')}</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.totalClients}</div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.05s' }}>
-            <div className="text-sm text-gray-500 dark:text-gray-400">Prestations</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{t('stats.prestations')}</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.totalPrestations}</div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.1s' }}>
-            <div className="text-sm text-gray-500 dark:text-gray-400">Chiffre d'affaires</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{t('stats.revenue')}</div>
             <div className="text-2xl font-bold text-gold mt-1">{formatCurrency(stats.totalRevenue)}</div>
           </div>
         </div>
@@ -283,7 +285,7 @@ export function Statistics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* CA par mois */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.2s' }}>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-4">Chiffre d'affaires (6 derniers mois)</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-4">{t('stats.revenueChart')}</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={stats.revenueByMonth}>
                 <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -303,7 +305,7 @@ export function Statistics() {
             {selectFields.length > 0 ? (
               <>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-medium text-gray-900 dark:text-white">Répartition</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-white">{t('stats.distribution')}</h3>
                   {selectFields.length > 1 ? (
                     <div className="w-48">
                       <Select
@@ -348,13 +350,13 @@ export function Statistics() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune donnée</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('common.noData')}</p>
                 )}
               </>
             ) : (
               <div className="text-center py-8">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-2">Répartition</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Ajoutez des champs de type "Liste déroulante" dans les paramètres pour voir la répartition ici</p>
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">{t('stats.distribution')}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('stats.noSelectFields')}</p>
               </div>
             )}
           </div>
@@ -364,7 +366,7 @@ export function Statistics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Top clients */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.3s' }}>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-3">Top clients</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-3">{t('stats.topClients')}</h3>
             {stats.topClients.length > 0 ? (
               <ul className="space-y-2">
                 {stats.topClients.map((client, index) => (
@@ -375,18 +377,18 @@ export function Statistics() {
                       </span>
                       <span className="text-gray-700 dark:text-gray-300">{client.name}</span>
                     </div>
-                    <span className="text-gray-500 dark:text-gray-400">{client.prestations} visites</span>
+                    <span className="text-gray-500 dark:text-gray-400">{client.prestations} {t('stats.visits')}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Aucune donnée</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('common.noData')}</p>
             )}
           </div>
 
           {/* Clients à relancer */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 animate-scale-in" style={{ animationDelay: '0.35s' }}>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-3">Clients à relancer</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-3">{t('stats.followUp')}</h3>
             {stats.clientsToFollowUp.length > 0 ? (
               <ul className="space-y-2">
                 {stats.clientsToFollowUp.map((client) => (
@@ -399,14 +401,14 @@ export function Statistics() {
                       <span className="text-gray-500 dark:text-gray-400 text-xs">
                         {client.lastVisit
                           ? `${Math.floor((Date.now() - client.lastVisit.getTime()) / (1000 * 60 * 60 * 24))}j`
-                          : 'Jamais'}
+                          : t('stats.never')}
                       </span>
                     </Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Tous les clients sont à jour</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('stats.allUpToDate')}</p>
             )}
           </div>
         </div>
