@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 interface RegisterProps {
@@ -8,6 +9,7 @@ interface RegisterProps {
 
 export function Register({ onSwitchToLogin }: RegisterProps) {
   const { register } = useAuth();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,27 +22,26 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError(t('register.errorPasswordMatch'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères');
+      setError(t('register.errorPasswordLength'));
       return;
     }
 
-    // Vérifier la complexité du mot de passe
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-      setError('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre');
+      setError(t('register.errorPasswordComplexity'));
       return;
     }
 
     if (!acceptedTerms) {
-      setError('Vous devez accepter les conditions générales d\'utilisation');
+      setError(t('register.errorTerms'));
       return;
     }
 
@@ -48,12 +49,11 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
 
     try {
       await register(email, password);
-      // AuthContext will handle redirect to onboarding
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes('email-already-in-use')) {
-        setError('Cet email est déjà utilisé');
+        setError(t('register.errorEmailUsed'));
       } else {
-        setError('Une erreur est survenue lors de l\'inscription');
+        setError(t('register.errorGeneric'));
       }
     } finally {
       setLoading(false);
@@ -70,10 +70,10 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
             </svg>
           </div>
           <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-cream tracking-wide">
-            Créer un compte
+            {t('register.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
-            Commencez avec 14 jours d'essai gratuit
+            {t('register.subtitle')}
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-              Email
+              {t('register.email')}
             </label>
             <input
               type="email"
@@ -100,7 +100,7 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-              Mot de passe
+              {t('register.password')}
             </label>
             <input
               type="password"
@@ -108,13 +108,13 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-              placeholder="Minimum 6 caractères"
+              placeholder={t('register.passwordPlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-              Confirmer le mot de passe
+              {t('register.confirmPassword')}
             </label>
             <input
               type="password"
@@ -122,7 +122,7 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-              placeholder="Confirmez votre mot de passe"
+              placeholder={t('register.confirmPlaceholder')}
             />
           </div>
 
@@ -134,13 +134,13 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
               className="mt-1 rounded border-gray-300 dark:border-gray-600 text-gold focus:ring-gold cursor-pointer"
             />
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              J'accepte les{' '}
+              {t('register.acceptTerms')}{' '}
               <Link
                 to="/cgu"
                 target="_blank"
                 className="text-gold hover:underline font-medium"
               >
-                conditions générales d'utilisation
+                {t('register.terms')}
               </Link>
             </span>
           </label>
@@ -150,18 +150,18 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
             disabled={loading || !acceptedTerms}
             className="w-full py-2.5 bg-gold text-white rounded-xl hover:bg-gold-light disabled:opacity-50 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
           >
-            {loading ? 'Création...' : 'Créer mon compte'}
+            {loading ? t('register.loading') : t('register.submit')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Déjà un compte ?{' '}
+            {t('register.hasAccount')}{' '}
             <button
               onClick={onSwitchToLogin}
               className="text-gold hover:underline font-medium cursor-pointer"
             >
-              Se connecter
+              {t('register.login')}
             </button>
           </p>
         </div>
@@ -171,7 +171,7 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
             to="/"
             className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
-            &larr; Retour à l'accueil
+            &larr; {t('nav.backToHome')}
           </Link>
         </div>
       </div>
