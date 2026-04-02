@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Salon } from '../types/multi-tenant';
 
 export function SalonSelector() {
+  const { t } = useTranslation();
   const { currentSalon, switchSalon, isSuperAdmin, userProfile, isViewingOtherSalon } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [salons, setSalons] = useState<Salon[]>([]);
@@ -97,18 +99,18 @@ export function SalonSelector() {
         <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 animate-scale-in origin-top-right">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
             <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1">
-              Changer d'établissement
+              {t('salonSelector.changeEstablishment')}
             </div>
           </div>
 
           <div className="max-h-64 overflow-y-auto p-2">
             {loading ? (
               <div className="px-2 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
-                Chargement...
+                {t('salonSelector.loading')}
               </div>
             ) : salons.length === 0 ? (
               <div className="px-2 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
-                Aucun établissement
+                {t('salonSelector.noEstablishment')}
               </div>
             ) : (
               <>
@@ -124,8 +126,8 @@ export function SalonSelector() {
                       </svg>
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="text-sm font-medium text-gold">Mon établissement</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Revenir à mon espace</div>
+                      <div className="text-sm font-medium text-gold">{t('salonSelector.myEstablishment')}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{t('salonSelector.backToSpace')}</div>
                     </div>
                   </button>
                 )}
@@ -151,8 +153,8 @@ export function SalonSelector() {
                         {salon.name}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {salon.subscriptionStatus === 'active' ? 'Actif' :
-                         salon.subscriptionStatus === 'pending' ? 'En attente' : 'Expiré'}
+                        {salon.subscriptionStatus === 'active' ? t('salonSelector.active') :
+                         salon.subscriptionStatus === 'pending' ? t('salonSelector.pending') : t('salonSelector.expired')}
                       </div>
                     </div>
                     {currentSalon?.id === salon.id && (

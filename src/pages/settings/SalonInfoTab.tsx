@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,6 +10,7 @@ interface SalonInfoTabProps {
 }
 
 export function SalonInfoTab({ salon }: SalonInfoTabProps) {
+  const { t } = useTranslation();
   const { refreshSalon } = useAuth();
   const [formData, setFormData] = useState({
     name: salon.name,
@@ -32,11 +34,11 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
       const salonRef = doc(db, 'salons', salon.id);
       await updateDoc(salonRef, formData);
       await refreshSalon();
-      setMessage({ type: 'success', text: 'Informations mises à jour' });
+      setMessage({ type: 'success', text: t('salonInfo.updated') });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error updating salon:', error);
-      setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
+      setMessage({ type: 'error', text: t('salonInfo.updateError') });
     } finally {
       setSaving(false);
     }
@@ -46,11 +48,11 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
     <div className="space-y-6">
       {/* Info Form */}
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Informations</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{t('salonInfo.info')}</h3>
 
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Nom de l'établissement *</label>
+            <label className={labelClass}>{t('salonInfo.nameLabel')} *</label>
             <input
               type="text"
               required
@@ -61,7 +63,7 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
           </div>
 
           <div>
-            <label className={labelClass}>Adresse</label>
+            <label className={labelClass}>{t('salonInfo.addressLabel')}</label>
             <input
               type="text"
               value={formData.address}
@@ -72,7 +74,7 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Téléphone</label>
+              <label className={labelClass}>{t('salonInfo.phoneLabel')}</label>
               <input
                 type="tel"
                 value={formData.phone}
@@ -81,7 +83,7 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
               />
             </div>
             <div>
-              <label className={labelClass}>Email</label>
+              <label className={labelClass}>{t('salonInfo.emailLabel')}</label>
               <input
                 type="email"
                 value={formData.email}
@@ -92,7 +94,7 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
           </div>
 
           <div>
-            <label className={labelClass}>Couleur principale</label>
+            <label className={labelClass}>{t('salonInfo.primaryColor')}</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -129,7 +131,7 @@ export function SalonInfoTab({ salon }: SalonInfoTabProps) {
             disabled={saving}
             className="px-6 py-2.5 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 disabled:opacity-50 cursor-pointer font-medium"
           >
-            {saving ? 'Enregistrement...' : 'Enregistrer les informations'}
+            {saving ? t('salonInfo.saving') : t('salonInfo.save')}
           </button>
         </div>
       </form>

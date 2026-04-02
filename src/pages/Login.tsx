@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 interface LoginProps {
@@ -8,6 +9,7 @@ interface LoginProps {
 
 export function Login({ onSwitchToRegister }: LoginProps) {
   const { login, resetPassword } = useAuth();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +25,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
     try {
       await login(email, password);
     } catch {
-      setError('Email ou mot de passe incorrect');
+      setError(t('login.error'));
     } finally {
       setLoading(false);
     }
@@ -31,7 +33,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
 
   const handleResetPassword = async () => {
     if (!email) {
-      setError('Veuillez entrer votre email pour réinitialiser votre mot de passe');
+      setError(t('login.resetNoEmail'));
       return;
     }
     setError('');
@@ -39,9 +41,9 @@ export function Login({ onSwitchToRegister }: LoginProps) {
 
     try {
       await resetPassword(email);
-      setSuccess('Un email de réinitialisation a été envoyé à ' + email);
+      setSuccess(t('login.resetSent', { email }));
     } catch {
-      setError('Impossible d\'envoyer l\'email de réinitialisation');
+      setError(t('login.resetError'));
     }
   };
 
@@ -55,10 +57,10 @@ export function Login({ onSwitchToRegister }: LoginProps) {
             </svg>
           </div>
           <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-cream tracking-wide animate-fade-in stagger-1">
-            Connexion
+            {t('login.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 animate-fade-in stagger-2">
-            Accédez à votre espace Prestio
+            {t('login.subtitle')}
           </p>
         </div>
 
@@ -76,7 +78,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
 
           <div className="animate-fade-in stagger-2">
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-              Email
+              {t('login.email')}
             </label>
             <input
               type="email"
@@ -89,7 +91,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
 
           <div className="animate-fade-in stagger-3">
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-              Mot de passe
+              {t('login.password')}
             </label>
             <input
               type="password"
@@ -106,7 +108,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
               onClick={handleResetPassword}
               className="text-sm text-gold hover:underline cursor-pointer"
             >
-              Mot de passe oublié ?
+              {t('login.forgotPassword')}
             </button>
           </div>
 
@@ -115,18 +117,18 @@ export function Login({ onSwitchToRegister }: LoginProps) {
             disabled={loading}
             className="w-full py-2.5 bg-gold text-white rounded-xl hover:bg-gold-light disabled:opacity-50 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
           >
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? t('login.loading') : t('login.submit')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Pas encore de compte ?{' '}
+            {t('login.noAccount')}{' '}
             <button
               onClick={onSwitchToRegister}
               className="text-gold hover:underline font-medium cursor-pointer"
             >
-              Créer un compte
+              {t('login.createAccount')}
             </button>
           </p>
         </div>
@@ -136,7 +138,7 @@ export function Login({ onSwitchToRegister }: LoginProps) {
             to="/"
             className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
-            &larr; Retour à l'accueil
+            &larr; {t('nav.backToHome')}
           </Link>
         </div>
       </div>

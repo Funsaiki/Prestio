@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CustomField, CustomFieldType, SelectOption } from '../../types/multi-tenant';
 import { Modal } from '../../components/Modal';
 import { Checkbox } from '../../components/Checkbox';
@@ -11,12 +12,12 @@ interface FieldsConfigTabProps {
   showDefaultPrices?: boolean; // Pour les prestations uniquement
 }
 
-const FIELD_TYPES: { value: CustomFieldType; label: string }[] = [
-  { value: 'text', label: 'Texte' },
-  { value: 'textarea', label: 'Texte long' },
-  { value: 'number', label: 'Nombre' },
-  { value: 'select', label: 'Liste déroulante' },
-  { value: 'checkbox', label: 'Case à cocher' },
+const FIELD_TYPE_KEYS: { value: CustomFieldType; labelKey: string }[] = [
+  { value: 'text', labelKey: 'fields.text' },
+  { value: 'textarea', labelKey: 'fields.longText' },
+  { value: 'number', labelKey: 'fields.number' },
+  { value: 'select', labelKey: 'fields.dropdown' },
+  { value: 'checkbox', labelKey: 'fields.checkbox' },
 ];
 
 const inputClass = "w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200";
@@ -36,6 +37,7 @@ function generateName(label: string): string {
 }
 
 export function FieldsConfigTab({ title, description, fields, onChange, showDefaultPrices = false }: FieldsConfigTabProps) {
+  const { t } = useTranslation();
   const [editingField, setEditingField] = useState<CustomField | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -115,7 +117,8 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
   };
 
   const getTypeLabel = (type: CustomFieldType) => {
-    return FIELD_TYPES.find(t => t.value === type)?.label || type;
+    const found = FIELD_TYPE_KEYS.find(ft => ft.value === type);
+    return found ? t(found.labelKey) : type;
   };
 
   return (
@@ -134,7 +137,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Ajouter un champ
+            {t('fields.addField')}
           </button>
         </div>
 
@@ -144,8 +147,8 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
             <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p>Aucun champ personnalisé</p>
-            <p className="text-sm mt-1">Cliquez sur "Ajouter un champ" pour commencer</p>
+            <p>{t('fields.noFields')}</p>
+            <p className="text-sm mt-1">{t('fields.noFieldsHint')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -160,7 +163,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
                     onClick={() => handleMoveUp(field.id)}
                     disabled={index === 0}
                     className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                    title="Monter"
+                    title={t('fields.moveUp')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -170,7 +173,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
                     onClick={() => handleMoveDown(field.id)}
                     disabled={index === sortedFields.length - 1}
                     className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                    title="Descendre"
+                    title={t('fields.moveDown')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -186,7 +189,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
                     </span>
                     {field.required && (
                       <span className="text-xs px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded">
-                        Requis
+                        {t('fields.required')}
                       </span>
                     )}
                   </div>
@@ -206,7 +209,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
                   <button
                     onClick={() => handleEditField(field)}
                     className="p-2 text-gray-500 hover:text-gold hover:bg-gold/10 rounded-lg transition-colors cursor-pointer"
-                    title="Modifier"
+                    title={t('fields.modify')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -215,7 +218,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
                   <button
                     onClick={() => setDeleteConfirm(field.id)}
                     className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
-                    title="Supprimer"
+                    title={t('fields.delete')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -245,7 +248,7 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteConfirm !== null}
-        title="Supprimer le champ"
+        title={t('fields.deleteField')}
         onClose={() => setDeleteConfirm(null)}
         size="sm"
         footer={
@@ -254,19 +257,19 @@ export function FieldsConfigTab({ title, description, fields, onChange, showDefa
               onClick={() => setDeleteConfirm(null)}
               className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               onClick={() => deleteConfirm && handleDeleteField(deleteConfirm)}
               className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors cursor-pointer"
             >
-              Supprimer
+              {t('fields.deleteButton')}
             </button>
           </div>
         }
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Êtes-vous sûr de vouloir supprimer ce champ ? Les données existantes associées à ce champ seront conservées mais ne seront plus visibles.
+          {t('fields.deleteConfirm')}
         </p>
       </Modal>
     </div>
@@ -284,6 +287,7 @@ interface FieldEditModalProps {
 }
 
 function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: FieldEditModalProps) {
+  const { t } = useTranslation();
   const [localField, setLocalField] = useState<CustomField>(field);
   const [errors, setErrors] = useState<{ label?: string }>({});
 
@@ -362,7 +366,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
 
     // Validation
     if (!localField.label.trim()) {
-      setErrors({ label: 'Le libellé est requis' });
+      setErrors({ label: t('fields.labelRequired') });
       return;
     }
 
@@ -392,7 +396,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
   return (
     <Modal
       isOpen={isOpen}
-      title={isNew ? 'Nouveau champ' : 'Modifier le champ'}
+      title={isNew ? t('fields.newField') : t('fields.editField')}
       onClose={onClose}
       size="lg"
       footer={
@@ -401,13 +405,13 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
             onClick={onClose}
             className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer"
           >
-            Annuler
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSubmit}
             className="px-4 py-2 bg-gold text-white rounded-xl hover:bg-gold-light transition-colors cursor-pointer"
           >
-            {isNew ? 'Ajouter' : 'Enregistrer'}
+            {isNew ? t('common.add') : t('common.save')}
           </button>
         </div>
       }
@@ -415,7 +419,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Label */}
         <div>
-          <label className={labelClass}>Libellé *</label>
+          <label className={labelClass}>{t('fields.label')} *</label>
           <input
             type="text"
             value={localField.label}
@@ -424,7 +428,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
               if (errors.label) setErrors({});
             }}
             className={errors.label ? `${inputClass} border-red-400` : inputClass}
-            placeholder="Ex: Type de pose"
+            placeholder={t('fields.labelPlaceholder')}
           />
           {errors.label && (
             <p className="mt-1 text-sm text-red-500">{errors.label}</p>
@@ -433,9 +437,9 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
 
         {/* Type */}
         <div>
-          <label className={labelClass}>Type de champ</label>
+          <label className={labelClass}>{t('fields.fieldType')}</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {FIELD_TYPES.map(type => (
+            {FIELD_TYPE_KEYS.map(type => (
               <button
                 key={type.value}
                 type="button"
@@ -446,7 +450,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                {type.label}
+                {t(type.labelKey)}
               </button>
             ))}
           </div>
@@ -457,19 +461,19 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
           id="field-required"
           checked={localField.required}
           onChange={(checked) => setLocalField({ ...localField, required: checked })}
-          label="Champ obligatoire"
+          label={t('fields.requiredField')}
         />
 
         {/* Placeholder (for text/textarea) */}
         {(localField.type === 'text' || localField.type === 'textarea') && (
           <div>
-            <label className={labelClass}>Placeholder (optionnel)</label>
+            <label className={labelClass}>{t('fields.placeholder')}</label>
             <input
               type="text"
               value={localField.placeholder || ''}
               onChange={(e) => setLocalField({ ...localField, placeholder: e.target.value })}
               className={inputClass}
-              placeholder="Texte affiché quand le champ est vide"
+              placeholder={t('fields.placeholderHint')}
             />
           </div>
         )}
@@ -477,13 +481,13 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
         {/* Unit (for number) */}
         {localField.type === 'number' && (
           <div>
-            <label className={labelClass}>Unité (optionnel)</label>
+            <label className={labelClass}>{t('fields.unit')}</label>
             <input
               type="text"
               value={localField.unit || ''}
               onChange={(e) => setLocalField({ ...localField, unit: e.target.value })}
               className={inputClass}
-              placeholder="Ex: mm, min, kg"
+              placeholder={t('fields.unitPlaceholder')}
             />
           </div>
         )}
@@ -491,7 +495,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
         {/* Options (for select) */}
         {localField.type === 'select' && (
           <div>
-            <label className={labelClass}>Options</label>
+            <label className={labelClass}>{t('fields.options')}</label>
             <div className="space-y-2">
               {(localField.options || []).map((option, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -500,7 +504,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
                     value={option.label}
                     onChange={(e) => handleUpdateOption(index, { label: e.target.value })}
                     className={`${inputClass} flex-1`}
-                    placeholder={`Option ${index + 1}`}
+                    placeholder={t('fields.optionPlaceholder')}
                   />
                   {showDefaultPrices && option.value && (
                     <div className="relative w-28">
@@ -512,7 +516,7 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
                           e.target.value === '' ? null : parseFloat(e.target.value)
                         )}
                         className={`${inputClass} pr-8 text-right`}
-                        placeholder="Prix"
+                        placeholder={t('fields.price')}
                         step="0.01"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
@@ -536,12 +540,12 @@ function FieldEditModal({ isOpen, field, showDefaultPrices, onSave, onClose }: F
                 onClick={handleAddOption}
                 className="w-full px-3 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:border-gold hover:text-gold transition-colors cursor-pointer text-sm"
               >
-                + Ajouter une option
+                + {t('fields.addOption')}
               </button>
             </div>
             {showDefaultPrices && (
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Vous pouvez définir un prix par défaut pour chaque option. Ce prix sera automatiquement rempli lors de la création d'une prestation.
+                {t('fields.defaultPriceHint')}
               </p>
             )}
           </div>

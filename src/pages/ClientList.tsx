@@ -1,16 +1,28 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useClients } from '../hooks/useClients';
 import { usePrestations } from '../hooks/usePrestations';
+import { useAuth } from '../contexts/AuthContext';
 import { ClientForm } from '../components/ClientForm';
 import { Modal } from '../components/Modal';
+import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
+import { isToday, isFuture } from '../utils/date';
 import type { Client } from '../types';
 
 type ClientWithPrestation = Client & { lastPrestationDate: Date | null };
 
 export function ClientList() {
+  const { t } = useTranslation();
   const { clients, loading, addClient } = useClients();
   const { prestations } = usePrestations();
+  const { salonConfig, canManageSettings } = useAuth();
+
+  const hasCustomFields = useMemo(() => {
+    const fields = salonConfig?.prestationFields ?? DEFAULT_SALON_CONFIG.prestationFields;
+    return fields.some(f => f.id !== 'mode_paiement');
+  }, [salonConfig?.prestationFields]);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -26,25 +38,6 @@ export function ClientList() {
 
   const openForm = useCallback(() => setFormVisible(true), []);
   const closeForm = useCallback(() => setFormVisible(false), []);
-
-  // Memoize les fonctions de date
-  const { isToday, isFuture } = useMemo(() => ({
-    isToday: (date: Date): boolean => {
-      const today = new Date();
-      return (
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
-      );
-    },
-    isFuture: (date: Date): boolean => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const compareDate = new Date(date);
-      compareDate.setHours(0, 0, 0, 0);
-      return compareDate > today;
-    }
-  }), []);
 
   // Memoize les clients catégorisés
   const { todayClients, futureClients, pastClients, filteredClients } = useMemo(() => {
@@ -182,7 +175,7 @@ export function ClientList() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500 dark:text-gray-400 animate-pulse">Chargement...</div>
+        <div className="text-gray-500 dark:text-gray-400 animate-pulse">{t('common.loading')}</div>
       </div>
     );
   }
@@ -190,29 +183,59 @@ export function ClientList() {
   return (
     <div className="h-full flex flex-col">
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
-        <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">Clients</h1>
+        <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">{t('clients.title')}</h1>
         <button
           onClick={openForm}
           className="text-white px-4 py-2 rounded-xl transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
           style={{ backgroundColor: 'var(--color-gold)' }}
         >
-          + Nouveau client
+          + {t('clients.newClient')}
         </button>
       </div>
 
       <div className="mb-4 flex-shrink-0">
         <input
           type="text"
-          placeholder="Rechercher un client..."
+          placeholder={t('clients.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 transition-all duration-200"
         />
       </div>
 
+      {/* Bannière configuration prestations */}
+      {canManageSettings && !hasCustomFields && !dismissedBanner && (
+        <div className="mb-4 flex-shrink-0 p-4 bg-gold/10 border border-gold/30 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              {t('clients.configBanner')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link
+              to="/settings"
+              className="px-3 py-1.5 bg-gold text-white rounded-lg text-sm font-medium hover:bg-gold-light transition-colors cursor-pointer"
+            >
+              {t('clients.configure')}
+            </Link>
+            <button
+              onClick={() => setDismissedBanner(true)}
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <Modal
         isOpen={formVisible}
-        title="Nouveau client"
+        title={t('clients.newClientTitle')}
         onClose={closeForm}
         footer={
           <div className="flex gap-3 justify-end">
@@ -221,7 +244,7 @@ export function ClientList() {
               onClick={closeForm}
               className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -230,7 +253,7 @@ export function ClientList() {
               className="px-4 py-2 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
               style={{ backgroundColor: 'var(--color-gold)' }}
             >
-              {submitting ? 'Enregistrement...' : 'Ajouter'}
+              {submitting ? t('common.saving') : t('common.add')}
             </button>
           </div>
         }
@@ -246,13 +269,13 @@ export function ClientList() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex-1 flex flex-col min-h-0">
         {filteredClients.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            {search ? 'Aucun client trouvé' : 'Aucun client enregistré'}
+            {search ? t('clients.noClientFound') : t('clients.noClient')}
           </div>
         ) : (
           <div className="overflow-y-auto flex-1">
-            {renderSection('Aujourd\'hui', 'today', todayClients, 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300')}
-            {renderSection('À venir', 'future', futureClients, 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300')}
-            {renderSection('Passé', 'past', pastClients, 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400')}
+            {renderSection(t('clients.today'), 'today', todayClients, 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300')}
+            {renderSection(t('clients.upcoming'), 'future', futureClients, 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300')}
+            {renderSection(t('clients.past'), 'past', pastClients, 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400')}
           </div>
         )}
       </div>

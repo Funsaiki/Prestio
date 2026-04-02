@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, doc, updateDoc, where, writeBatch, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, updateDoc, where, writeBatch, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { authenticatedFetch } from '../utils/api';
 import type { Salon } from '../types/multi-tenant';
 import { DEFAULT_SALON_CONFIG } from '../types/multi-tenant';
 
@@ -137,45 +138,16 @@ export function SuperAdmin() {
   const handleDeleteSalon = async (salonId: string) => {
     setDeletingSalonId(salonId);
     try {
-      // Delete all clients of this salon
-      const clientsSnapshot = await getDocs(
-        query(collection(db, 'clients'), where('salonId', '==', salonId))
-      );
-      for (const clientDoc of clientsSnapshot.docs) {
-        // Delete all prestations of this client
-        const prestationsSnapshot = await getDocs(
-          query(collection(db, 'prestations'), where('client_id', '==', clientDoc.id))
-        );
-        const batch = writeBatch(db);
-        prestationsSnapshot.docs.forEach((prestDoc) => batch.delete(prestDoc.ref));
-        if (prestationsSnapshot.docs.length > 0) await batch.commit();
+      const response = await authenticatedFetch('/api/delete-salon', {
+        method: 'POST',
+        body: JSON.stringify({ salonId }),
+      });
 
-        await deleteDoc(clientDoc.ref);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de la suppression');
       }
-
-      // Delete remaining prestations with this salonId
-      const remainingPrestations = await getDocs(
-        query(collection(db, 'prestations'), where('salonId', '==', salonId))
-      );
-      if (remainingPrestations.docs.length > 0) {
-        const batch = writeBatch(db);
-        remainingPrestations.docs.forEach((d) => batch.delete(d.ref));
-        await batch.commit();
-      }
-
-      // Delete salon config
-      await deleteDoc(doc(db, 'salonConfigs', salonId)).catch(() => {});
-
-      // Unlink users from this salon
-      const usersSnapshot = await getDocs(
-        query(collection(db, 'users'), where('salonId', '==', salonId))
-      );
-      for (const userDoc of usersSnapshot.docs) {
-        await updateDoc(userDoc.ref, { salonId: null });
-      }
-
-      // Delete the salon
-      await deleteDoc(doc(db, 'salons', salonId));
 
       // If we were viewing this salon, switch away
       if (currentSalon?.id === salonId) {

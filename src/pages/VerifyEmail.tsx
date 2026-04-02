@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { doc, setDoc, getDoc, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { db, auth } from '../config/firebase';
@@ -13,6 +14,7 @@ function generateVerificationCode(): string {
 
 export function VerifyEmail() {
   const { firebaseUser, userProfile, needsEmailVerification, loading } = useAuth();
+  const { t } = useTranslation();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
@@ -74,7 +76,7 @@ export function VerifyEmail() {
       setCountdown(60); // 60 seconds before resend
     } catch (err: unknown) {
       console.error('Error sending code:', err);
-      setError('Erreur lors de l\'envoi du code. Veuillez réessayer.');
+      setError(t('verify.errorSend'));
     } finally {
       setSending(false);
     }
@@ -83,7 +85,7 @@ export function VerifyEmail() {
   const verifyCode = async () => {
     const fullCode = code.join('');
     if (fullCode.length !== 6) {
-      setError('Veuillez entrer le code complet');
+      setError(t('verify.enterFullCode'));
       return;
     }
 
@@ -97,7 +99,7 @@ export function VerifyEmail() {
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
-        setError('Aucun code trouvé. Veuillez en demander un nouveau.');
+        setError(t('verify.noCodeFound'));
         setVerifying(false);
         return;
       }
@@ -108,7 +110,7 @@ export function VerifyEmail() {
       // Check if expired
       if (data.expiresAt.toMillis() < now.toMillis()) {
         await deleteDoc(docRef);
-        setError('Le code a expiré. Veuillez en demander un nouveau.');
+        setError(t('verify.codeExpired'));
         setCodeSent(false);
         setCode(['', '', '', '', '', '']);
         setVerifying(false);
@@ -118,7 +120,7 @@ export function VerifyEmail() {
       // Check attempts (max 5)
       if (data.attempts >= 5) {
         await deleteDoc(docRef);
-        setError('Trop de tentatives. Veuillez demander un nouveau code.');
+        setError(t('verify.tooManyAttempts'));
         setCodeSent(false);
         setCode(['', '', '', '', '', '']);
         setVerifying(false);
@@ -130,7 +132,7 @@ export function VerifyEmail() {
         await updateDoc(docRef, {
           attempts: data.attempts + 1,
         });
-        setError(`Code incorrect. ${4 - data.attempts} tentative(s) restante(s).`);
+        setError(`${t('verify.incorrectCode')}. ${t('verify.attemptsLeft', { count: 4 - data.attempts })}`);
         setVerifying(false);
         return;
       }
@@ -147,7 +149,7 @@ export function VerifyEmail() {
       // The real-time listener in AuthContext will automatically update the profile
     } catch (err: unknown) {
       console.error('Error verifying code:', err);
-      setError('Erreur lors de la vérification. Veuillez réessayer.');
+      setError(t('verify.errorVerify'));
     } finally {
       setVerifying(false);
     }
@@ -212,12 +214,12 @@ export function VerifyEmail() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Vérifiez votre email
+            {t('verify.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             {codeSent
-              ? `Un code a été envoyé à ${firebaseUser?.email}`
-              : `Nous allons envoyer un code de vérification à ${firebaseUser?.email}`}
+              ? t('verify.codeSent', { email: firebaseUser?.email })
+              : t('verify.codeWillSend', { email: firebaseUser?.email })}
           </p>
         </div>
 
@@ -234,10 +236,10 @@ export function VerifyEmail() {
             {sending ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
-                Envoi en cours...
+                {t('verify.sending')}
               </span>
             ) : (
-              'Envoyer le code'
+              t('verify.sendCode')
             )}
           </button>
         ) : (
@@ -272,23 +274,23 @@ export function VerifyEmail() {
               {verifying ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
-                  Vérification...
+                  {t('verify.verifying')}
                 </span>
               ) : (
-                'Vérifier'
+                t('verify.verify')
               )}
             </button>
 
             <div className="text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                Vous n'avez pas reçu le code ?
+                {t('verify.noCode')}
               </p>
               <button
                 onClick={sendCode}
                 disabled={sending || countdown > 0}
                 className="text-gold hover:text-gold-dark font-medium disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer"
               >
-                {countdown > 0 ? `Renvoyer dans ${countdown}s` : 'Renvoyer le code'}
+                {countdown > 0 ? t('verify.resendIn', { seconds: countdown }) : t('verify.resend')}
               </button>
             </div>
           </div>
@@ -299,7 +301,7 @@ export function VerifyEmail() {
             onClick={() => signOut(auth)}
             className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
           >
-            &larr; Retour à la connexion
+            &larr; {t('verify.backToLogin')}
           </button>
         </div>
       </div>
