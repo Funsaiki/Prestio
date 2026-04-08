@@ -7,7 +7,7 @@ export type SubscriptionStatus = 'pending' | 'active' | 'past_due' | 'canceled' 
 
 // ===== Prix =====
 
-export const SUBSCRIPTION_PRICE = 20; // euros/mois
+export const SUBSCRIPTION_PRICE = 19.99; // euros/mois
 
 // ===== Salon =====
 
