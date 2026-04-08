@@ -28,7 +28,7 @@ export function MentionsLegales() {
             <div className="text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
               <p><strong>Prestio</strong></p>
               <p>Micro-entreprise</p>
-              <p>SIRET : En cours d'immatriculation</p>
+              <p>SIRET : 10175775500018</p>
               <p>Email : prestio.app@gmail.com</p>
               <p>Directeur de la publication : Johnny Hu</p>
             </div>
