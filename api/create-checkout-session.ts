@@ -40,8 +40,9 @@ function isAllowedReturnUrl(url: string): boolean {
     if (ALLOWED_ORIGINS.length > 0) {
       return ALLOWED_ORIGINS.includes(parsed.origin);
     }
-    return parsed.protocol === 'https:' || parsed.hostname === 'localhost';
+    return parsed.protocol === 'https:' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
   } catch {
+    console.error('Invalid returnUrl:', url);
     return false;
   }
 }
@@ -62,6 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!isAllowedReturnUrl(returnUrl)) {
+      console.error('Rejected returnUrl:', returnUrl, 'type:', typeof returnUrl);
       return res.status(400).json({ error: 'Invalid return URL' });
     }
 
