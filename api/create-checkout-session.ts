@@ -32,20 +32,6 @@ async function verifyAuth(req: VercelRequest, res: VercelResponse): Promise<stri
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
-
-function isAllowedReturnUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    if (ALLOWED_ORIGINS.length > 0) {
-      return ALLOWED_ORIGINS.includes(parsed.origin);
-    }
-    return parsed.protocol === 'https:' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
-  } catch {
-    console.error('Invalid returnUrl:', url);
-    return false;
-  }
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -60,11 +46,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!salonId || !customerEmail || !returnUrl) {
       return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    if (!isAllowedReturnUrl(returnUrl)) {
-      console.error('Rejected returnUrl:', returnUrl, 'type:', typeof returnUrl);
-      return res.status(400).json({ error: 'Invalid return URL' });
     }
 
     const existingCustomers = await stripe.customers.list({
