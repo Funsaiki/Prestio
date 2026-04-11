@@ -35,9 +35,111 @@
     <!-- Theme color -->
     <meta name="theme-color" content="#c9a86c" />
     <meta name="msapplication-TileColor" content="#c9a86c" />
+
+    <!-- Hreflang -->
+    <link rel="alternate" hreflang="fr" href="https://prestio.vercel.app/" />
+    <link rel="alternate" hreflang="en" href="https://prestio.vercel.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://prestio.vercel.app/" />
+
+    <style>
+      .ssr-landing { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; background: #fdfbf7; color: #1f2937; margin: 0; }
+      .ssr-landing nav { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; max-width: 1152px; margin: 0 auto; }
+      .ssr-landing .logo { font-size: 1.5rem; font-weight: 700; color: #c9a86c; font-family: Georgia, serif; }
+      .ssr-landing .nav-buttons { display: flex; gap: 0.75rem; align-items: center; }
+      .ssr-landing .btn { padding: 0.5rem 1.25rem; border-radius: 0.75rem; text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+      .ssr-landing .btn-primary { background: #c9a86c; color: white; }
+      .ssr-landing .btn-secondary { color: #374151; }
+      .ssr-landing .hero { max-width: 896px; margin: 4rem auto; padding: 0 1.5rem; text-align: center; }
+      .ssr-landing h1 { font-size: 3rem; font-weight: 700; line-height: 1.2; margin: 0 0 1.5rem; font-family: Georgia, serif; }
+      .ssr-landing h1 .highlight { color: #c9a86c; }
+      .ssr-landing .hero p { font-size: 1.25rem; color: #6b7280; max-width: 640px; margin: 0 auto 2.5rem; }
+      .ssr-landing .features { background: white; padding: 5rem 1.5rem; }
+      .ssr-landing .features-inner { max-width: 1152px; margin: 0 auto; }
+      .ssr-landing h2 { font-size: 2.25rem; font-weight: 700; text-align: center; margin: 0 0 1rem; font-family: Georgia, serif; }
+      .ssr-landing .features-subtitle { text-align: center; color: #6b7280; margin: 0 0 4rem; font-size: 1.125rem; }
+      .ssr-landing .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+      .ssr-landing .feature { padding: 1.5rem; background: #f9fafb; border-radius: 1rem; }
+      .ssr-landing .feature h3 { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.5rem; }
+      .ssr-landing .feature p { color: #6b7280; margin: 0; }
+      .ssr-landing .pricing { padding: 5rem 1.5rem; text-align: center; }
+      .ssr-landing .price-card { max-width: 480px; margin: 3rem auto 0; padding: 2rem; background: white; border: 2px solid #c9a86c; border-radius: 1rem; }
+      .ssr-landing .price { font-size: 3rem; font-weight: 700; color: #c9a86c; }
+      .ssr-landing footer { padding: 2rem 1.5rem; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 0.875rem; }
+      @media (prefers-color-scheme: dark) {
+        .ssr-landing { background: #111827; color: white; }
+        .ssr-landing .features { background: #1f2937; }
+        .ssr-landing .feature { background: rgba(55, 65, 81, 0.5); }
+        .ssr-landing .price-card { background: #1f2937; }
+        .ssr-landing .hero p, .ssr-landing .features-subtitle, .ssr-landing .feature p, .ssr-landing footer { color: #9ca3af; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static SSR landing for SEO -->
+      <div class="ssr-landing">
+        <nav>
+          <span class="logo">Prestio</span>
+          <div class="nav-buttons">
+            <a href="/login" class="btn btn-secondary">Connexion</a>
+            <a href="/register" class="btn btn-primary">Essayer gratuitement</a>
+          </div>
+        </nav>
+
+        <section class="hero">
+          <h1>Gérez vos clients et prestations <span class="highlight">en toute simplicité</span></h1>
+          <p>L'outil tout-en-un pour les professionnels. Suivi clients, historique des prestations, statistiques et plus encore.</p>
+          <a href="/register" class="btn btn-primary" style="padding: 0.875rem 2rem; font-size: 1.125rem;">Commencer maintenant</a>
+        </section>
+
+        <section class="features">
+          <div class="features-inner">
+            <h2>Tout ce dont vous avez besoin</h2>
+            <p class="features-subtitle">Des outils pensés pour votre quotidien professionnel</p>
+            <div class="features-grid">
+              <div class="feature">
+                <h3>Gestion de clients</h3>
+                <p>Fiches clients complètes avec historique, notes et champs personnalisables.</p>
+              </div>
+              <div class="feature">
+                <h3>Suivi des prestations</h3>
+                <p>Enregistrez chaque prestation avec prix, détails et mode de paiement.</p>
+              </div>
+              <div class="feature">
+                <h3>Statistiques détaillées</h3>
+                <p>Chiffre d'affaires, top clients, répartitions et tendances en un coup d'oeil.</p>
+              </div>
+              <div class="feature">
+                <h3>Formulaires personnalisables</h3>
+                <p>Adaptez les champs de saisie à votre activité : coiffure, esthétique, bien-être...</p>
+              </div>
+              <div class="feature">
+                <h3>Multi-utilisateurs</h3>
+                <p>Invitez vos employés et gérez les accès avec des rôles dédiés.</p>
+              </div>
+              <div class="feature">
+                <h3>Accessible partout</h3>
+                <p>Application web responsive, utilisable sur ordinateur, tablette et smartphone.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="pricing">
+          <h2>Un tarif simple et transparent</h2>
+          <p class="features-subtitle">Pas d'engagement, annulation à tout moment</p>
+          <div class="price-card">
+            <div><span class="price">19,99€</span><span style="color: #6b7280;">/mois</span></div>
+            <p style="margin: 1rem 0;">Clients illimités, prestations illimitées, statistiques complètes, support prioritaire</p>
+            <a href="/register" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem;">Commencer maintenant</a>
+          </div>
+        </section>
+
+        <footer>
+          <p>&copy; 2026 Prestio. Tous droits réservés. <a href="/cgu" style="color: inherit;">CGU</a> · <a href="/confidentialite" style="color: inherit;">Confidentialité</a> · <a href="/mentions-legales" style="color: inherit;">Mentions légales</a></p>
+        </footer>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
