@@ -36,7 +36,21 @@
     "footer": "All rights reserved.",
     "cgu": "Terms",
     "privacy": "Privacy",
-    "legal": "Legal"
+    "legal": "Legal",
+    "faqTitle": "Frequently asked questions",
+    "faqSubtitle": "Everything you need to know before getting started",
+    "faq1Q": "Who is Prestio for?",
+    "faq1A": "Prestio is designed for all professionals managing a client base: hairdressers, beauticians, massage therapists, naturopaths, independent trainers, etc. The app adapts to your activity with customizable fields.",
+    "faq2Q": "Is there a long-term commitment?",
+    "faq2A": "No commitment. The subscription is monthly and you can cancel anytime from your account. Access remains active until the end of the paid period.",
+    "faq3Q": "Is my data secure?",
+    "faq3A": "Yes, your data is hosted on secure servers in Europe (Google Firebase). Communications are encrypted via HTTPS and payments are processed by Stripe. We do not store any banking data.",
+    "faq4Q": "Can I try Prestio for free?",
+    "faq4A": "You can create your account and explore the app before subscribing. The €19.99/month subscription is required to access full features.",
+    "faq5Q": "How many clients can I manage?",
+    "faq5A": "The number of clients and services is unlimited with your subscription. You can add as many records as needed at no extra cost.",
+    "faq6Q": "Can I invite my employees?",
+    "faq6A": "Yes, Prestio supports multiple users per establishment. You can invite your employees and manage their access via dedicated roles."
   },
   "login": {
     "title": "Sign in",
