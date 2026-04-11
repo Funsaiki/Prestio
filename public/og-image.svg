@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c9a86c"/>
+      <stop offset="100%" style="stop-color:#b8943d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="80" fill="white" opacity="0.05"/>
+  <circle cx="1100" cy="530" r="120" fill="white" opacity="0.05"/>
+  <circle cx="950" cy="80" r="40" fill="white" opacity="0.08"/>
+
+  <!-- Logo (P in circle) -->
+  <circle cx="600" cy="200" r="60" fill="white" opacity="0.15"/>
+  <text x="600" y="225" font-family="Georgia, 'Times New Roman', serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">P</text>
+
+  <!-- Title -->
+  <text x="600" y="370" font-family="Georgia, 'Times New Roman', serif" font-size="100" font-weight="bold" fill="white" text-anchor="middle">Prestio</text>
+
+  <!-- Tagline -->
+  <text x="600" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="36" fill="white" text-anchor="middle" opacity="0.95">Gestion de clients et prestations</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="500" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="24" fill="white" text-anchor="middle" opacity="0.8">L'outil tout-en-un pour les professionnels</text>
+
+  <!-- Bottom accent line -->
+  <rect x="500" y="540" width="200" height="3" fill="white" opacity="0.6" rx="1.5"/>
+</svg>
