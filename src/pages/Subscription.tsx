@@ -65,7 +65,7 @@ export function Subscription() {
           <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl mb-6">
             <div className="flex items-center gap-3">
               {currentSalon.logo ? (
-                <img src={currentSalon.logo} alt={currentSalon.name} className="w-12 h-12 rounded-full object-cover" />
+                <img src={currentSalon.logo} alt={currentSalon.name} loading="lazy" decoding="async" className="w-12 h-12 rounded-full object-cover" />
               ) : (
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"

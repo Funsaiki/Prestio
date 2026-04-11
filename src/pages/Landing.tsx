@@ -3,11 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { SUBSCRIPTION_PRICE } from '../types/multi-tenant';
 
-interface LandingProps {
-  onLogin: () => void;
-  onRegister: () => void;
-}
-
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -37,7 +32,7 @@ const featureKeys = ['Clients', 'Prestations', 'Stats', 'Custom', 'MultiUser', '
 const pricingKeys = ['Clients', 'Prestations', 'Stats', 'Custom', 'MultiUser', 'Support'] as const;
 const faqKeys = ['1', '2', '3', '4', '5', '6'] as const;
 
-export function Landing({ onLogin, onRegister }: LandingProps) {
+export function Landing() {
   const { t } = useTranslation();
 
   const faqStructuredData = {
@@ -69,18 +64,18 @@ export function Landing({ onLogin, onRegister }: LandingProps) {
           <span className="font-elegant text-2xl font-bold text-gold tracking-wide">Prestio</span>
           <div className="flex items-center gap-3">
             <LanguageToggle />
-            <button
-              onClick={onLogin}
+            <Link
+              to="/login"
               className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gold transition-colors font-medium cursor-pointer"
             >
               {t('nav.login')}
-            </button>
-            <button
-              onClick={onRegister}
+            </Link>
+            <Link
+              to="/register"
               className="px-5 py-2 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 font-medium shadow-md cursor-pointer"
             >
               {t('nav.tryFree')}
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -96,12 +91,12 @@ export function Landing({ onLogin, onRegister }: LandingProps) {
             {t('landing.heroDescription')}
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={onRegister}
+            <Link
+              to="/register"
               className="px-8 py-3.5 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-lg cursor-pointer"
             >
               {t('landing.cta')}
-            </button>
+            </Link>
             <a
               href="#features"
               className="px-8 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:border-gold hover:text-gold transition-all duration-200 font-medium text-lg cursor-pointer"
@@ -170,12 +165,12 @@ export function Landing({ onLogin, onRegister }: LandingProps) {
               ))}
             </ul>
 
-            <button
-              onClick={onRegister}
-              className="w-full py-3 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 font-medium shadow-md hover:shadow-lg cursor-pointer text-lg"
+            <Link
+              to="/register"
+              className="block w-full py-3 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 font-medium shadow-md hover:shadow-lg cursor-pointer text-lg text-center"
             >
               {t('landing.cta')}
-            </button>
+            </Link>
           </div>
         </div>
       </section>
