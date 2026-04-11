@@ -36,7 +36,21 @@
     "footer": "Tous droits réservés.",
     "cgu": "CGU",
     "privacy": "Confidentialité",
-    "legal": "Mentions légales"
+    "legal": "Mentions légales",
+    "faqTitle": "Questions fréquentes",
+    "faqSubtitle": "Tout ce que vous devez savoir avant de commencer",
+    "faq1Q": "Pour qui est conçu Prestio ?",
+    "faq1A": "Prestio est conçu pour tous les professionnels qui gèrent une clientèle : coiffeurs, esthéticiennes, masseurs, naturopathes, formateurs indépendants, etc. L'application s'adapte à votre activité grâce à des champs personnalisables.",
+    "faq2Q": "Y a-t-il un engagement de durée ?",
+    "faq2A": "Non, aucun engagement. L'abonnement est mensuel et vous pouvez l'annuler à tout moment depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période payée.",
+    "faq3Q": "Mes données sont-elles en sécurité ?",
+    "faq3A": "Oui, vos données sont hébergées sur des serveurs sécurisés en Europe (Google Firebase). Les communications sont chiffrées en HTTPS et les paiements sont traités par Stripe. Nous ne stockons aucune donnée bancaire.",
+    "faq4Q": "Puis-je essayer Prestio gratuitement ?",
+    "faq4A": "Vous pouvez créer votre compte et explorer l'application avant de souscrire. L'abonnement de 19,99€/mois est requis pour accéder aux fonctionnalités complètes.",
+    "faq5Q": "Combien de clients puis-je gérer ?",
+    "faq5A": "Le nombre de clients et de prestations est illimité avec votre abonnement. Vous pouvez ajouter autant de fiches que nécessaire sans surcoût.",
+    "faq6Q": "Puis-je inviter mes employés ?",
+    "faq6A": "Oui, Prestio supporte plusieurs utilisateurs par établissement. Vous pouvez inviter vos employés et gérer leurs accès via des rôles dédiés."
   },
   "login": {
     "title": "Connexion",

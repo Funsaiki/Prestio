@@ -41,6 +41,64 @@
     <link rel="alternate" hreflang="en" href="https://prestio.vercel.app/" />
     <link rel="alternate" hreflang="x-default" href="https://prestio.vercel.app/" />
 
+    <!-- Structured data: FAQ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Pour qui est conçu Prestio ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Prestio est conçu pour tous les professionnels qui gèrent une clientèle : coiffeurs, esthéticiennes, masseurs, naturopathes, formateurs indépendants, etc. L'application s'adapte à votre activité grâce à des champs personnalisables."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Y a-t-il un engagement de durée ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Non, aucun engagement. L'abonnement est mensuel et vous pouvez l'annuler à tout moment depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période payée."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Mes données sont-elles en sécurité ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui, vos données sont hébergées sur des serveurs sécurisés en Europe (Google Firebase). Les communications sont chiffrées en HTTPS et les paiements sont traités par Stripe. Nous ne stockons aucune donnée bancaire."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Puis-je essayer Prestio gratuitement ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Vous pouvez créer votre compte et explorer l'application avant de souscrire. L'abonnement de 19,99€/mois est requis pour accéder aux fonctionnalités complètes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Combien de clients puis-je gérer ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Le nombre de clients et de prestations est illimité avec votre abonnement. Vous pouvez ajouter autant de fiches que nécessaire sans surcoût."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Puis-je inviter mes employés ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui, Prestio supporte plusieurs utilisateurs par établissement. Vous pouvez inviter vos employés et gérer leurs accès via des rôles dédiés."
+          }
+        }
+      ]
+    }
+    </script>
+
     <style>
       .ssr-landing { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; background: #fdfbf7; color: #1f2937; margin: 0; }
       .ssr-landing nav { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; max-width: 1152px; margin: 0 auto; }
@@ -64,13 +122,19 @@
       .ssr-landing .pricing { padding: 5rem 1.5rem; text-align: center; }
       .ssr-landing .price-card { max-width: 480px; margin: 3rem auto 0; padding: 2rem; background: white; border: 2px solid #c9a86c; border-radius: 1rem; }
       .ssr-landing .price { font-size: 3rem; font-weight: 700; color: #c9a86c; }
+      .ssr-landing .faq { padding: 5rem 1.5rem; background: white; }
+      .ssr-landing .faq-inner { max-width: 768px; margin: 0 auto; }
+      .ssr-landing .faq details { background: #f9fafb; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; }
+      .ssr-landing .faq summary { font-weight: 600; cursor: pointer; list-style: none; }
+      .ssr-landing .faq summary::-webkit-details-marker { display: none; }
+      .ssr-landing .faq p { color: #6b7280; margin: 1rem 0 0; line-height: 1.6; }
       .ssr-landing footer { padding: 2rem 1.5rem; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 0.875rem; }
       @media (prefers-color-scheme: dark) {
         .ssr-landing { background: #111827; color: white; }
-        .ssr-landing .features { background: #1f2937; }
-        .ssr-landing .feature { background: rgba(55, 65, 81, 0.5); }
+        .ssr-landing .features, .ssr-landing .faq { background: #1f2937; }
+        .ssr-landing .feature, .ssr-landing .faq details { background: rgba(55, 65, 81, 0.5); }
         .ssr-landing .price-card { background: #1f2937; }
-        .ssr-landing .hero p, .ssr-landing .features-subtitle, .ssr-landing .feature p, .ssr-landing footer { color: #9ca3af; }
+        .ssr-landing .hero p, .ssr-landing .features-subtitle, .ssr-landing .feature p, .ssr-landing .faq p, .ssr-landing footer { color: #9ca3af; }
       }
     </style>
   </head>
@@ -132,6 +196,37 @@
             <div><span class="price">19,99€</span><span style="color: #6b7280;">/mois</span></div>
             <p style="margin: 1rem 0;">Clients illimités, prestations illimitées, statistiques complètes, support prioritaire</p>
             <a href="/register" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem;">Commencer maintenant</a>
+          </div>
+        </section>
+
+        <section class="faq">
+          <div class="faq-inner">
+            <h2>Questions fréquentes</h2>
+            <p class="features-subtitle">Tout ce que vous devez savoir avant de commencer</p>
+            <details>
+              <summary>Pour qui est conçu Prestio ?</summary>
+              <p>Prestio est conçu pour tous les professionnels qui gèrent une clientèle : coiffeurs, esthéticiennes, masseurs, naturopathes, formateurs indépendants, etc. L'application s'adapte à votre activité grâce à des champs personnalisables.</p>
+            </details>
+            <details>
+              <summary>Y a-t-il un engagement de durée ?</summary>
+              <p>Non, aucun engagement. L'abonnement est mensuel et vous pouvez l'annuler à tout moment depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période payée.</p>
+            </details>
+            <details>
+              <summary>Mes données sont-elles en sécurité ?</summary>
+              <p>Oui, vos données sont hébergées sur des serveurs sécurisés en Europe (Google Firebase). Les communications sont chiffrées en HTTPS et les paiements sont traités par Stripe. Nous ne stockons aucune donnée bancaire.</p>
+            </details>
+            <details>
+              <summary>Puis-je essayer Prestio gratuitement ?</summary>
+              <p>Vous pouvez créer votre compte et explorer l'application avant de souscrire. L'abonnement de 19,99€/mois est requis pour accéder aux fonctionnalités complètes.</p>
+            </details>
+            <details>
+              <summary>Combien de clients puis-je gérer ?</summary>
+              <p>Le nombre de clients et de prestations est illimité avec votre abonnement. Vous pouvez ajouter autant de fiches que nécessaire sans surcoût.</p>
+            </details>
+            <details>
+              <summary>Puis-je inviter mes employés ?</summary>
+              <p>Oui, Prestio supporte plusieurs utilisateurs par établissement. Vous pouvez inviter vos employés et gérer leurs accès via des rôles dédiés.</p>
+            </details>
           </div>
         </section>
 

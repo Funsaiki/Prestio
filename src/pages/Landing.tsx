@@ -35,15 +35,33 @@ const featureIcons = [
 
 const featureKeys = ['Clients', 'Prestations', 'Stats', 'Custom', 'MultiUser', 'Responsive'] as const;
 const pricingKeys = ['Clients', 'Prestations', 'Stats', 'Custom', 'MultiUser', 'Support'] as const;
+const faqKeys = ['1', '2', '3', '4', '5', '6'] as const;
 
 export function Landing({ onLogin, onRegister }: LandingProps) {
   const { t } = useTranslation();
+
+  const faqStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqKeys.map((key) => ({
+      '@type': 'Question',
+      name: t(`landing.faq${key}Q`),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: t(`landing.faq${key}A`),
+      },
+    })),
+  };
 
   return (
     <div className="min-h-screen bg-cream dark:bg-gray-900 transition-colors duration-500">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
       />
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-50 border-b border-gray-200 dark:border-gray-700">
@@ -158,6 +176,44 @@ export function Landing({ onLogin, onRegister }: LandingProps) {
             >
               {t('landing.cta')}
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 px-4 bg-white dark:bg-gray-800">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="font-elegant text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              {t('landing.faqTitle')}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
+              {t('landing.faqSubtitle')}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {faqKeys.map((key) => (
+              <details
+                key={key}
+                className="group bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <summary className="font-semibold text-gray-900 dark:text-white flex justify-between items-center list-none">
+                  <span>{t(`landing.faq${key}Q`)}</span>
+                  <svg
+                    className="w-5 h-5 text-gold flex-shrink-0 ml-4 transition-transform group-open:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {t(`landing.faq${key}A`)}
+                </p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
