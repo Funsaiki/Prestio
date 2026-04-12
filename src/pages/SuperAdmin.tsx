@@ -77,7 +77,7 @@ export function SuperAdmin() {
 
   // Guard after hooks
   if (!isSuperAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   const loadSalons = async () => {
@@ -556,7 +556,7 @@ export function SuperAdmin() {
             Outils admin
           </Link>
           <Link
-            to="/"
+            to="/home"
             className="px-4 py-2 bg-gold text-white rounded-xl hover:bg-gold-light transition-all duration-200 cursor-pointer text-sm"
           >
             Retour à l'app

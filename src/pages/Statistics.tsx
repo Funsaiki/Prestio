@@ -205,7 +205,7 @@ export function Statistics() {
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">{t('stats.title')}</h1>
         <Link
-          to="/"
+          to="/home"
           className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 cursor-pointer"
         >
           {t('stats.backToClients')}

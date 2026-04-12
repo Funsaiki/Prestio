@@ -266,7 +266,7 @@ export function ClientDetail() {
     return (
       <div className="text-center py-12 animate-fade-in">
         <p className="text-gray-500 dark:text-gray-400 mb-4">{t('clientDetail.notFound')}</p>
-        <Link to="/" className="text-gold hover:text-gold-light transition-colors duration-200">
+        <Link to="/home" className="text-gold hover:text-gold-light transition-colors duration-200">
           {t('clientDetail.backToList')}
         </Link>
       </div>

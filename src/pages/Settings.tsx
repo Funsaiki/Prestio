@@ -66,7 +66,7 @@ export function Settings() {
 
   // Access control
   if (!canManageSettings) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   if (!currentSalon) {
@@ -137,7 +137,7 @@ export function Settings() {
       <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div className="flex items-center gap-3">
           <Link
-            to="/"
+            to="/home"
             className="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

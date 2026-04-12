@@ -73,8 +73,8 @@ function AppContent() {
     return <AuthRoutes />;
   }
 
-  if (['/login', '/register'].includes(location.pathname)) {
-    return <Navigate to="/" replace />;
+  if (['/', '/login', '/register'].includes(location.pathname)) {
+    return <Navigate to="/home" replace />;
   }
 
   if (needsEmailVerification) {
@@ -114,7 +114,7 @@ function AppContent() {
             )}
 
             <header className="bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex justify-between items-center transition-colors duration-300 flex-shrink-0">
-              <Link to="/" className="flex items-center gap-3 group">
+              <Link to="/home" className="flex items-center gap-3 group">
                 {currentSalon?.logo ? (
                   <img
                     src={currentSalon.logo}
@@ -196,7 +196,7 @@ function AppContent() {
               <ErrorBoundary>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
-                    <Route path="/" element={<ClientList />} />
+                    <Route path="/home" element={<ClientList />} />
                     <Route path="/clients/:id" element={<ClientDetail />} />
                     <Route path="/statistiques" element={<Statistics />} />
                     <Route path="/settings" element={<Settings />} />
