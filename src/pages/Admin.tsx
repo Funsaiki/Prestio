@@ -45,7 +45,7 @@ export function Admin() {
 
   // Vérification admin
   if (!firebaseUser || !isSuperAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   // Payment migration handlers
@@ -163,7 +163,7 @@ export function Admin() {
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h1 className="font-elegant text-2xl font-semibold text-gray-800 dark:text-white">Administration</h1>
         <Link
-          to="/"
+          to="/home"
           className="text-gray-600 dark:text-gray-400 hover:text-gold transition-colors duration-200 cursor-pointer"
         >
           Retour aux clients
